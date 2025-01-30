@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from ..airtime import AirTime
+from ..errors import ValidationError
 
 HOURS_IN_DAY = 24
 DAYS_IN_WEEK = 7
@@ -31,8 +32,10 @@ CELLS_IN_WEEK = HOURS_IN_DAY * DAYS_IN_WEEK
 _RANGE = re.compile(r"^([A-Za-z]{1,2})-([A-Za-z]{1,2})$")
 
 
-class DaypartError(ValueError):
+class DaypartError(ValidationError):
     """A daypart that could not be sold as described."""
+
+    code = "bad_daypart"
 
 
 class Weekday(IntEnum):

@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from ..airtime import Duration
+from ..errors import ValidationError
 
 #: What the rate card will quote. Anything else has to be sold as a special.
 SELLABLE_SECONDS = (10, 15, 20, 30, 45, 60, 90, 120)
@@ -41,8 +42,10 @@ ISCI = re.compile(r"^[A-Z]{4}[A-Z0-9]{4,8}$")
 CART = re.compile(r"^[A-Z]\d{3,5}$")
 
 
-class SpotError(ValueError):
+class SpotError(ValidationError):
     """A length or a cut that cannot be filed."""
+
+    code = "bad_spot"
 
 
 @dataclass(frozen=True, slots=True, order=True)

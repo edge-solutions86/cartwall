@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 
+from ..errors import ValidationError
+
 CALL_SIGN = re.compile(r"^[KW][A-Z]{2,3}(?:-(?:FM|AM|LP))?$")
 
 #: FM sits on odd tenths only, 88.1 through 107.9.
@@ -35,8 +37,10 @@ AM_HIGH = 1700
 AM_SPACING = 10
 
 
-class StationError(ValueError):
+class StationError(ValidationError):
     """A signal that could not exist as described."""
+
+    code = "bad_station"
 
 
 class Band(Enum):

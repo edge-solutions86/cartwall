@@ -28,6 +28,7 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
+from ..errors import ValidationError
 from ..money import Money
 from .spot import SpotLength
 
@@ -44,8 +45,10 @@ LENGTH_FACTORS: dict[int, Decimal] = {
 }
 
 
-class RateError(ValueError):
+class RateError(ValidationError):
     """A rate that cannot be quoted."""
+
+    code = "bad_rate"
 
 
 class ClassOfTime(Enum):

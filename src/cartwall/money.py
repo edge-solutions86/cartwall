@@ -29,6 +29,8 @@ import re
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
+from .errors import ValidationError
+
 CENTS = Decimal("0.01")
 
 #: What a recognised agency keeps. Direct business has no commission.
@@ -37,8 +39,10 @@ AGENCY_RATE = Decimal("0.15")
 _AMOUNT = re.compile(r"^\$?\s*(-?)([\d,]+)(?:\.(\d{1,2}))?$")
 
 
-class MoneyError(ValueError):
+class MoneyError(ValidationError):
     """An amount that is not an amount."""
+
+    code = "bad_amount"
 
 
 def _round(value: Decimal) -> int:

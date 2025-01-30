@@ -21,6 +21,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from .errors import ValidationError
+
 TENTHS_PER_SECOND = 10
 SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 3600
@@ -31,8 +33,10 @@ _DURATION = re.compile(r"^(?:(\d+):)?(?:(\d+):)?(\d+)(?:\.(\d))?$")
 _AIRTIME = re.compile(r"^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.(\d))?\s*([ap])?$", re.IGNORECASE)
 
 
-class TimeError(ValueError):
+class TimeError(ValidationError):
     """A time or a length that cannot be what it says it is."""
+
+    code = "bad_time"
 
 
 @dataclass(frozen=True, slots=True, order=True)

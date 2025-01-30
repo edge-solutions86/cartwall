@@ -27,14 +27,17 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 
+from ..errors import ValidationError
 from ..money import AGENCY_RATE
 
 CODE = re.compile(r"^[A-Z][A-Z0-9]{1,7}$")
 CATEGORY = re.compile(r"^[A-Z][A-Z0-9]*(?:\.[A-Z][A-Z0-9]*)*$")
 
 
-class AccountError(ValueError):
+class AccountError(ValidationError):
     """An account that cannot be set up as described."""
+
+    code = "bad_account"
 
 
 class Credit(Enum):

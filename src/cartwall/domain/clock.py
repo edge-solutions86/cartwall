@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from ..airtime import SECONDS_PER_HOUR, AirTime, Duration, total_length
+from ..errors import ValidationError
 
 AN_HOUR = Duration.of_seconds(SECONDS_PER_HOUR)
 
@@ -32,8 +33,10 @@ AN_HOUR = Duration.of_seconds(SECONDS_PER_HOUR)
 LEGAL_ID_WINDOW = Duration.of_seconds(5 * 60)
 
 
-class ClockError(ValueError):
+class ClockError(ValidationError):
     """A clock that could not be run as drawn."""
+
+    code = "bad_clock"
 
 
 class BreakKind(Enum):
