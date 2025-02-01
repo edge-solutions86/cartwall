@@ -34,5 +34,11 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "C4", "SIM", "RET"]
 
+[tool.ruff.lint.per-file-ignores]
+# A test that a property refuses has to evaluate the property and nothing
+# else. Assigning the result to a throwaway name to satisfy the linter makes
+# the test read as if the value mattered.
+"tests/*" = ["B018"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["cartwall"]
