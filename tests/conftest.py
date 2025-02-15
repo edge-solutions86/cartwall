@@ -57,15 +57,17 @@ def accounts() -> AccountBook:
     book.add_agency(Agency("MOP", "Mopar Media"))
     book.add_agency(Agency("CRS", "Crossroads Buying", Decimal("0.15")))
     book.add_agency(Agency("HSE", "House", Decimal("0")))
+    # The dealers all carry AUTO as well as their brand, which is how a real
+    # book is written: two dealers of any make separate from each other.
     book.add_advertiser(Advertiser.build("HYVEE", "Hy-Vee", "GROCERY,FUEL.GAS"))
     book.add_advertiser(Advertiser.build("CASEY", "Caseys", "FUEL,GROCERY.CONV"))
     book.add_advertiser(
-        Advertiser.build("DEALF", "Dahl Ford", "AUTO.DOMESTIC.FORD", agency="MOP")
+        Advertiser.build("DEALF", "Dahl Ford", "AUTO,BRAND.FORD", agency="MOP")
     )
     book.add_advertiser(
-        Advertiser.build("DEALC", "Community Chevrolet", "AUTO.DOMESTIC.CHEV", agency="MOP")
+        Advertiser.build("DEALC", "Community Chevrolet", "AUTO,BRAND.CHEV", agency="MOP")
     )
-    book.add_advertiser(Advertiser.build("DEALT", "Toyota of Waterloo", "AUTO.IMPORT.TOYO"))
+    book.add_advertiser(Advertiser.build("DEALT", "Toyota of Waterloo", "AUTO,BRAND.TOYO"))
     book.add_advertiser(Advertiser.build("SLUMB", "Slumberland", "FURNITURE", agency="CRS"))
     book.add_advertiser(Advertiser.build("VGM", "VGM Group", "SERVICES.HOME"))
     book.add_advertiser(Advertiser.build("BLACK", "Black Hawk Bank", "FINANCE.BANK"))

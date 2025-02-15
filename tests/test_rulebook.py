@@ -10,7 +10,6 @@ from cartwall.domain.separation import SeparationBook
 from cartwall.domain.spot import SIXTY, THIRTY
 from cartwall.domain.station import StationError
 from cartwall.money import Money
-
 from support import FRIDAY, MONDAY, SATURDAY
 
 FIXED = ClassOfTime.FIXED
