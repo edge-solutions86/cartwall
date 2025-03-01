@@ -31,17 +31,10 @@ from datetime import date
 
 from ..domain.account import AccountBook
 from ..domain.rotation import Rotation
-from ..domain.rulebook import RuleBook
-from ..domain.separation import Candidate
-from ..errors import ValidationError
-from .candidates import Ask, Opening, board_candidates, openings, why_blocked
-from .inventory import Avail, DayBoard, Placement
-
-
-class PlacerError(ValidationError):
-    """A run that could not be started."""
-
-    code = "bad_placer"
+from .candidates import Ask, Opening, openings, why_blocked
+from .inventory import DayBoard
+from .lay import Landed, Lay, PlacerError
+from .pinning import put_spot
 
 
 def spread(count: int, buckets: int) -> list[int]:
@@ -52,42 +45,6 @@ def spread(count: int, buckets: int) -> list[int]:
         raise PlacerError("cannot spread a negative count")
     base, extra = divmod(count, buckets)
     return [base + (1 if index < extra else 0) for index in range(buckets)]
-
-
-@dataclass
-class Lay:
-    """One date's board and the rules that go with it."""
-
-    board: DayBoard
-    book: RuleBook
-    neighbours: list[Candidate] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        if self.board.day != self.book.on:
-            raise PlacerError(f"a board for {self.board.day} came with rules for {self.book.on}")
-        if self.board.station != self.book.call:
-            raise PlacerError(f"{self.board.station}'s board came with {self.book.call}'s rules")
-
-    @property
-    def day(self) -> date:
-        return self.board.day
-
-    def prime(self, accounts: AccountBook) -> None:
-        """Read the board once. After this the list is kept up to date by hand."""
-        self.neighbours = board_candidates(self.board, accounts)
-
-
-@dataclass(frozen=True, slots=True)
-class Landed:
-    """One spot, and where it ended up."""
-
-    day: date
-    hour: int
-    number: int
-    cart: str
-
-    def __str__(self) -> str:
-        return f"{self.day} hour {self.hour} break {self.number}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,32 +116,6 @@ def _mine_by_hour(board: DayBoard, ask: Ask) -> dict[int, int]:
     return tally
 
 
-def _put(lay: Lay, avail: Avail, ask: Ask, cart: str) -> Landed:
-    placement = Placement(
-        order=ask.order,
-        line=ask.line,
-        advertiser=ask.advertiser.code,
-        length=ask.length,
-        grade=ask.grade,
-        cart=cart,
-    )
-    at = avail.starts_at
-    for sitting in avail.placements:
-        at = at + sitting.length.air
-    avail.add(placement)
-    lay.neighbours.append(
-        Candidate(
-            day=lay.day,
-            at=at,
-            break_number=avail.number,
-            advertiser=ask.advertiser,
-            cart=cart,
-            agency=ask.agency,
-        )
-    )
-    return Landed(lay.day, avail.hour, avail.number, cart)
-
-
 def place_week(
     lays: list[Lay],
     accounts: AccountBook,
@@ -234,7 +165,7 @@ def _try_one(lay: Lay, accounts: AccountBook, ask: Ask, cart: str) -> Landed | N
     chosen = _pick(found, lay, ask)
     if chosen is None:
         return None
-    return _put(lay, chosen.avail, seeking, cart)
+    return put_spot(lay, chosen.avail, seeking, cart)
 
 
 def _spill(
