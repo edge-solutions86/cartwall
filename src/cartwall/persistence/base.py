@@ -30,6 +30,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from ..airtime import AirTime, Duration
+from ..domain.spot import SpotLength
 from ..money import Money
 
 NAMING = {
@@ -98,6 +99,23 @@ class ClockTenths(TypeDecorator):
         if value is None:
             return None
         return AirTime(value)
+
+
+class Seconds(TypeDecorator):
+    """A sold length, stored as whole seconds. ``30`` reads as a :30."""
+
+    impl = Integer
+    cache_ok = True
+
+    def process_bind_param(self, value: SpotLength | None, dialect) -> int | None:
+        if value is None:
+            return None
+        return value.seconds
+
+    def process_result_value(self, value: int | None, dialect) -> SpotLength | None:
+        if value is None:
+            return None
+        return SpotLength(value)
 
 
 class EnumValue(TypeDecorator):
