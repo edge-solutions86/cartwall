@@ -137,7 +137,7 @@ def test_something_that_is_not_a_document_number():
 
 def test_the_counter_row_prints_where_it_stands(session):
     Numbering(session).next("ORD", 2025)
-    from cartwall.services.numbering import CounterRow
+    from cartwall.persistence.models.office import CounterRow
 
     row = session.get(CounterRow, ("ORD", 2025))
     assert repr(row) == "<CounterRow ORD 2025 at 1001>"

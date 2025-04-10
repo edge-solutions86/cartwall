@@ -21,14 +21,14 @@ number goes back to 1001 rather than carrying on into six digits.
 
 from __future__ import annotations
 
-from sqlalchemy import Integer, String, select
-from sqlalchemy.orm import Mapped, Session, mapped_column
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from ..errors import ConflictError, ValidationError
-from ..persistence.base import CODE_LENGTH, Base
+from ..persistence.models.office import FIRST_NUMBER, CounterRow
 
 #: Order numbers start here so a four digit number always reads as one.
-FIRST = 1000
+FIRST = FIRST_NUMBER
 
 
 class NumberingError(ValidationError):
@@ -41,19 +41,6 @@ class SeriesExhausted(ConflictError):
     """A year's worth of numbers has run out."""
 
     code = "series_exhausted"
-
-
-class CounterRow(Base):
-    """One row per series per year. The only row anybody locks."""
-
-    __tablename__ = "counter"
-
-    series: Mapped[str] = mapped_column(String(CODE_LENGTH), primary_key=True)
-    year: Mapped[int] = mapped_column(Integer, primary_key=True)
-    last: Mapped[int] = mapped_column(Integer, default=FIRST)
-
-    def __repr__(self) -> str:
-        return f"<CounterRow {self.series} {self.year} at {self.last}>"
 
 
 #: Four digits after the dash, so 8999 documents of one kind in one year.

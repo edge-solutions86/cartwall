@@ -12,6 +12,7 @@ license = { text = "Proprietary" }
 authors = [{ name = "rkaushik-dev" }]
 dependencies = [
   "SQLAlchemy==2.0.38",
+  "alembic==1.14.1",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +42,12 @@ select = ["E", "F", "I", "B", "UP", "C4", "SIM", "RET"]
 # else. Assigning the result to a throwaway name to satisfy the linter makes
 # the test read as if the value mattered.
 "tests/*" = ["B018"]
+# A migration is a table definition column by column. One column per line is
+# how it is read and how it is diffed, and wrapping the long ones at a hundred
+# characters makes it harder to see that a column is missing.
+"migrations/*" = ["E501"]
+# env.py registers every table by star import, which is the whole point of it.
+"migrations/env.py" = ["E501", "F401", "F403"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["cartwall"]

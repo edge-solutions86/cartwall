@@ -13,6 +13,9 @@ from .logs import (  # noqa: F401
     LogRow,
     SpotRow,
 )
+from .office import (  # noqa: F401
+    CounterRow,
+)
 from .reference import (  # noqa: F401
     AssignmentRow,
     BreakRow,
