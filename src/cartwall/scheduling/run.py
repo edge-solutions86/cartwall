@@ -65,6 +65,10 @@ class Boards:
             self._lays[key] = Lay(self.board(call, day), self.book(call, day))
         return self._lays[key]
 
+    def built(self) -> list[tuple[str, date]]:
+        """Every station day this run actually touched, in a stable order."""
+        return sorted(self._boards)
+
     def days(self) -> list[date]:
         return sorted({day for _, day in self._boards})
 
