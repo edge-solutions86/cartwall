@@ -20,7 +20,7 @@ from .. import __version__
 from ..config import Settings
 from ..persistence.unitofwork import open_database
 from . import errors
-from .routers import orders
+from .routers import logs, orders
 
 TITLE = "cartwall"
 DESCRIPTION = "Traffic, continuity and billing for a radio group"
@@ -53,4 +53,5 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         return {"status": "ready"}
 
     app.include_router(orders.router)
+    app.include_router(logs.router)
     return app

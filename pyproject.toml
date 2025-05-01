@@ -57,6 +57,9 @@ select = ["E", "F", "I", "B", "UP", "C4", "SIM", "RET"]
 "migrations/*" = ["E501"]
 # env.py registers every table by star import, which is the whole point of it.
 "migrations/env.py" = ["E501", "F401", "F403"]
+# Routes declare their query parameters and bodies as call defaults. That is
+# the framework's calling convention and there is no way to write it otherwise.
+"src/cartwall/api/*" = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["cartwall"]
