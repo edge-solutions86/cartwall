@@ -162,6 +162,19 @@ class LogRepository:
         self.session.flush()
         return status_from(row)
 
+    def mark_aired(self, station: str, day: date) -> LogStatus:
+        """The day is over. Nothing else moves until somebody revises it."""
+        row = self._require(station, day)
+        if row.state is not LogState.RELEASED:
+            raise LogAlreadyOut(
+                f"{station} {day} is {row.state.value} and did not go to air from here",
+                station=station,
+                state=row.state.value,
+            )
+        row.state = LogState.AIRED
+        self.session.flush()
+        return status_from(row)
+
     def revise(self, station: str, day: date) -> LogStatus:
         row = self._require(station, day)
         row.state = LogState.DRAFT

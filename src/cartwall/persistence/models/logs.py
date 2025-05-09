@@ -32,11 +32,20 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...airtime import AirTime
+from ...airtime import AirTime, Duration
 from ...domain.ratecard import ClassOfTime
 from ...domain.spot import SpotLength
 from ...logs.approval import LogState
-from ..base import CODE_LENGTH, NAME_LENGTH, Base, ClockTenths, EnumValue, Seconds
+from ...playout.asrun import Played
+from ..base import (
+    CODE_LENGTH,
+    NAME_LENGTH,
+    Base,
+    ClockTenths,
+    EnumValue,
+    Seconds,
+    Tenths,
+)
 from .reference import StationRow
 
 
@@ -89,6 +98,15 @@ class SpotRow(Base):
     grade: Mapped[ClassOfTime] = mapped_column(EnumValue(ClassOfTime))
     cart: Mapped[str] = mapped_column(String(CODE_LENGTH), default="")
     fixed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    #: What the as-run said. Written by the posting run, read by billing.
+    #: Null until the day has aired and the as-run has been posted against it.
+    aired: Mapped[bool] = mapped_column(Boolean, default=False)
+    aired_at: Mapped[AirTime | None] = mapped_column(ClockTenths, nullable=True)
+    aired_length: Mapped[Duration | None] = mapped_column(Tenths, nullable=True)
+    aired_status: Mapped[Played] = mapped_column(
+        EnumValue(Played), default=Played.UNKNOWN
+    )
 
     log: Mapped[LogRow] = relationship(back_populates="spots")
 

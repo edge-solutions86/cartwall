@@ -15,6 +15,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import inspect
 
+import cartwall.persistence.models  # noqa: F401  registers every table
 from cartwall.persistence.base import Base, create_all, engine_for
 
 ROOT = Path(__file__).resolve().parent.parent
