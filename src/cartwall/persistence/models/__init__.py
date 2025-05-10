@@ -8,6 +8,11 @@ from .accounts import (  # noqa: F401
     QuoteRow,
     RateCardRow,
 )
+from .billing import (  # noqa: F401
+    InvoiceDetailRow,
+    InvoiceRow,
+    InvoiceSummaryRow,
+)
 from .logs import (  # noqa: F401
     BumpRow,
     LogRow,
