@@ -21,8 +21,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest==8.3.4",
+  "pytest-cov==6.0.0",
   "httpx==0.28.1",
   "ruff==0.9.6",
+  "mypy==1.15.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -63,3 +65,11 @@ select = ["E", "F", "I", "B", "UP", "C4", "SIM", "RET"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["cartwall"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true

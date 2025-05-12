@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import overload
 
 from .errors import ValidationError
 
@@ -180,7 +181,19 @@ class AirTime:
             raise TimeError("that runs past midnight, which belongs to the next log")
         return AirTime(end)
 
+    @overload
+    def __sub__(self, other: Duration) -> AirTime: ...
+
+    @overload
+    def __sub__(self, other: AirTime) -> Duration: ...
+
     def __sub__(self, other: Duration | AirTime) -> AirTime | Duration:
+        """A length off a position is a position. Two positions are a length.
+
+        Written as overloads so a caller that subtracts two air times gets a
+        ``Duration`` and not a union it has to narrow. The union was costing
+        every caller an assertion or a cast.
+        """
         if isinstance(other, Duration):
             start = self.tenths - other.tenths
             if start < 0:

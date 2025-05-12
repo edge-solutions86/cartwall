@@ -16,6 +16,7 @@ two error shapes will handle one of them badly, and it will be the rare one.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -63,7 +64,7 @@ def install(app: FastAPI) -> None:
         )
 
 
-def _readable(problems: list[dict[str, Any]]) -> list[dict[str, str]]:
+def _readable(problems: Sequence[Any]) -> list[dict[str, str]]:
     """The framework's own list, trimmed to what a caller can act on."""
     return [
         {

@@ -189,10 +189,10 @@ def clock_grid_from(
     station: str, effective, clocks: list[ClockRow], assignments: list[AssignmentRow]
 ) -> ClockGrid:
     grid = ClockGrid(station, effective)
-    for row in clocks:
-        grid.file_clock(clock_from(row))
-    for row in sorted(assignments, key=lambda row: row.ordinal):
-        grid.assign(assignment_from(row))
+    for clock in clocks:
+        grid.file_clock(clock_from(clock))
+    for assignment in sorted(assignments, key=lambda row: row.ordinal):
+        grid.assign(assignment_from(assignment))
     return grid
 
 
@@ -245,11 +245,11 @@ def account_book_from(
 ) -> AccountBook:
     """Parents before children, so the book's own checks can run."""
     book = AccountBook()
-    for row in agencies:
-        book.add_agency(agency_from(row))
+    for agency in agencies:
+        book.add_agency(agency_from(agency))
     ordered = sorted(advertisers, key=lambda row: (row.parent is not None, row.code))
-    for row in ordered:
-        book.add_advertiser(advertiser_from(row))
+    for advertiser in ordered:
+        book.add_advertiser(advertiser_from(advertiser))
     return book
 
 

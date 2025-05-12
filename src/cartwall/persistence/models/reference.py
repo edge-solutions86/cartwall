@@ -29,6 +29,7 @@ schedule spots into a ballgame.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -53,7 +54,7 @@ class StationRow(Base):
 
     call: Mapped[str] = mapped_column(String(CODE_LENGTH), primary_key=True)
     band: Mapped[Band] = mapped_column(EnumValue(Band))
-    frequency: Mapped[float] = mapped_column(Numeric(6, 1))
+    frequency: Mapped[Decimal] = mapped_column(Numeric(6, 1))
     city_of_license: Mapped[str] = mapped_column(String(NAME_LENGTH))
     service: Mapped[Service] = mapped_column(EnumValue(Service))
     market: Mapped[str] = mapped_column(String(NAME_LENGTH))

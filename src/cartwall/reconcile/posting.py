@@ -93,9 +93,10 @@ def post(session: Session, result: Reconciliation, force: bool = False) -> Posti
 
     for match in result.matched:
         entry = match.scheduled
-        spot = spots.get((entry.order, entry.line, entry.hour, entry.break_number))
-        if spot is None:
+        found = spots.get((entry.order, entry.line, entry.hour, entry.break_number))
+        if found is None:
             continue
+        spot = found
         spot.aired = match.billable
         spot.aired_at = match.aired.at
         spot.aired_length = match.aired.length
@@ -107,9 +108,9 @@ def post(session: Session, result: Reconciliation, force: bool = False) -> Posti
 
     for miss in result.missed:
         entry = miss.scheduled
-        spot = spots.get((entry.order, entry.line, entry.hour, entry.break_number))
-        if spot is not None:
-            spot.aired_status = _status_named(miss.reason)
+        found = spots.get((entry.order, entry.line, entry.hour, entry.break_number))
+        if found is not None:
+            found.aired_status = _status_named(miss.reason)
         report.missed += 1
 
     report.unmatched = len(result.extra)

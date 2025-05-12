@@ -178,9 +178,9 @@ class LineOut(Shape):
             station=line.station,
             daypart=line.daypart,
             grade=line.grade,
-            length=line.length,
-            rate=line.rate,
-            value=line.value,
+            length=str(line.length),
+            rate=str(line.rate.amount),
+            value=str(line.value.amount),
             spots=line.spots,
             flight=FlightOut(
                 first=line.flight.first,
@@ -216,7 +216,7 @@ class OrderOut(Shape):
             campaign=order.campaign,
             status=order.status,
             spots=order.spots,
-            value=order.value,
+            value=str(order.value.amount),
             lines=[LineOut.of(line) for line in order.lines],
         )
 
