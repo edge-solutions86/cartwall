@@ -96,8 +96,7 @@ class Invoice:
             raise InvoiceError(f"invoice {self.number} names no order")
         if not 0 <= self.commission_rate < 1:
             raise InvoiceError(
-                f"invoice {self.number} takes {self.commission_rate} off, "
-                "which is not a commission"
+                f"invoice {self.number} takes {self.commission_rate} off, which is not a commission"
             )
 
     @property
@@ -138,8 +137,7 @@ class Invoice:
         summed = total([summary.gross for summary in self.summaries])
         if detail != summed:
             raise InvoiceError(
-                f"invoice {self.number} details come to {detail} and the summary "
-                f"comes to {summed}",
+                f"invoice {self.number} details come to {detail} and the summary comes to {summed}",
                 invoice=self.number,
                 detail=str(detail),
                 summary=str(summed),

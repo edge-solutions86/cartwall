@@ -120,19 +120,22 @@ def test_a_translator_cannot_carry_a_station_that_is_not_there(session):
 
 
 def test_sqlite_is_told_to_enforce_foreign_keys(session):
-    session.add(DaypartRow(station="NOPE", code="AMD", name="drive", days="M-F",
-                           first_hour=6, last_hour=10))
+    session.add(
+        DaypartRow(station="NOPE", code="AMD", name="drive", days="M-F", first_hour=6, last_hour=10)
+    )
     with pytest.raises(IntegrityError):
         session.commit()
 
 
 def test_a_station_may_not_file_the_same_daypart_code_twice(session):
     session.add(a_station())
-    session.add(DaypartRow(station="KWLO", code="AMD", name="drive", days="M-F",
-                           first_hour=6, last_hour=10))
+    session.add(
+        DaypartRow(station="KWLO", code="AMD", name="drive", days="M-F", first_hour=6, last_hour=10)
+    )
     session.commit()
-    session.add(DaypartRow(station="KWLO", code="AMD", name="again", days="M-F",
-                           first_hour=6, last_hour=10))
+    session.add(
+        DaypartRow(station="KWLO", code="AMD", name="again", days="M-F", first_hour=6, last_hour=10)
+    )
     with pytest.raises(IntegrityError):
         session.commit()
 
@@ -140,10 +143,12 @@ def test_a_station_may_not_file_the_same_daypart_code_twice(session):
 def test_two_stations_may_use_the_same_daypart_code(session):
     session.add(a_station("KWLO"))
     session.add(a_station("KCRR", frequency=Decimal("97.7")))
-    session.add(DaypartRow(station="KWLO", code="AMD", name="drive", days="M-F",
-                           first_hour=6, last_hour=10))
-    session.add(DaypartRow(station="KCRR", code="AMD", name="drive", days="M-F",
-                           first_hour=6, last_hour=10))
+    session.add(
+        DaypartRow(station="KWLO", code="AMD", name="drive", days="M-F", first_hour=6, last_hour=10)
+    )
+    session.add(
+        DaypartRow(station="KCRR", code="AMD", name="drive", days="M-F", first_hour=6, last_hour=10)
+    )
     session.commit()
     assert len(session.scalars(select(DaypartRow)).all()) == 2
 
@@ -152,12 +157,28 @@ def test_a_clock_carries_its_breaks_in_number_order(session):
     session.add(a_station())
     clock = ClockRow(station="KWLO", code="MUS", name="music hour", effective=JANUARY)
     clock.breaks = [
-        BreakRow(number=3, kind=BreakKind.LOCAL, position=Duration.of_seconds(1320),
-                 length=Duration.of_seconds(180), units=6),
-        BreakRow(number=1, kind=BreakKind.LEGAL_ID, position=Duration(0),
-                 length=Duration.of_seconds(10), units=1, paid=False),
-        BreakRow(number=2, kind=BreakKind.LOCAL, position=Duration.of_seconds(600),
-                 length=Duration.of_seconds(180), units=6),
+        BreakRow(
+            number=3,
+            kind=BreakKind.LOCAL,
+            position=Duration.of_seconds(1320),
+            length=Duration.of_seconds(180),
+            units=6,
+        ),
+        BreakRow(
+            number=1,
+            kind=BreakKind.LEGAL_ID,
+            position=Duration(0),
+            length=Duration.of_seconds(10),
+            units=1,
+            paid=False,
+        ),
+        BreakRow(
+            number=2,
+            kind=BreakKind.LOCAL,
+            position=Duration.of_seconds(600),
+            length=Duration.of_seconds(180),
+            units=6,
+        ),
     ]
     session.add(clock)
     session.commit()
@@ -172,10 +193,20 @@ def test_a_clock_may_not_number_a_break_twice(session):
     session.add(a_station())
     clock = ClockRow(station="KWLO", code="MUS", name="music hour", effective=JANUARY)
     clock.breaks = [
-        BreakRow(number=2, kind=BreakKind.LOCAL, position=Duration(0),
-                 length=Duration.of_seconds(180), units=6),
-        BreakRow(number=2, kind=BreakKind.LOCAL, position=Duration.of_seconds(600),
-                 length=Duration.of_seconds(180), units=6),
+        BreakRow(
+            number=2,
+            kind=BreakKind.LOCAL,
+            position=Duration(0),
+            length=Duration.of_seconds(180),
+            units=6,
+        ),
+        BreakRow(
+            number=2,
+            kind=BreakKind.LOCAL,
+            position=Duration.of_seconds(600),
+            length=Duration.of_seconds(180),
+            units=6,
+        ),
     ]
     session.add(clock)
     with pytest.raises(IntegrityError):
@@ -202,8 +233,13 @@ def test_deleting_a_clock_takes_its_breaks_with_it(session):
     session.add(a_station())
     clock = ClockRow(station="KWLO", code="MUS", name="music", effective=JANUARY)
     clock.breaks = [
-        BreakRow(number=2, kind=BreakKind.LOCAL, position=Duration(0),
-                 length=Duration.of_seconds(180), units=6),
+        BreakRow(
+            number=2,
+            kind=BreakKind.LOCAL,
+            position=Duration(0),
+            length=Duration.of_seconds(180),
+            units=6,
+        ),
     ]
     session.add(clock)
     session.commit()
@@ -214,14 +250,32 @@ def test_deleting_a_clock_takes_its_breaks_with_it(session):
 
 def test_assignments_keep_the_order_they_were_filed_in(session):
     session.add(a_station())
-    session.add(AssignmentRow(station="KWLO", effective=JANUARY, ordinal=1, label="all week",
-                              days="M-Su", first_hour=0, last_hour=24, clock_code="MUS"))
-    session.add(AssignmentRow(station="KWLO", effective=JANUARY, ordinal=2, label="football",
-                              days="F", first_hour=19, last_hour=23, source=Source.PREEMPTED))
+    session.add(
+        AssignmentRow(
+            station="KWLO",
+            effective=JANUARY,
+            ordinal=1,
+            label="all week",
+            days="M-Su",
+            first_hour=0,
+            last_hour=24,
+            clock_code="MUS",
+        )
+    )
+    session.add(
+        AssignmentRow(
+            station="KWLO",
+            effective=JANUARY,
+            ordinal=2,
+            label="football",
+            days="F",
+            first_hour=19,
+            last_hour=23,
+            source=Source.PREEMPTED,
+        )
+    )
     session.commit()
-    rows = session.scalars(
-        select(AssignmentRow).order_by(AssignmentRow.ordinal)
-    ).all()
+    rows = session.scalars(select(AssignmentRow).order_by(AssignmentRow.ordinal)).all()
     assert [row.label for row in rows] == ["all week", "football"]
     assert rows[1].source is Source.PREEMPTED
     assert rows[1].clock_code == ""
@@ -230,7 +284,17 @@ def test_assignments_keep_the_order_they_were_filed_in(session):
 def test_two_assignments_may_not_claim_the_same_place_in_the_stack(session):
     session.add(a_station())
     for label in ("first", "second"):
-        session.add(AssignmentRow(station="KWLO", effective=JANUARY, ordinal=1, label=label,
-                                  days="M-Su", first_hour=0, last_hour=24, clock_code="MUS"))
+        session.add(
+            AssignmentRow(
+                station="KWLO",
+                effective=JANUARY,
+                ordinal=1,
+                label=label,
+                days="M-Su",
+                first_hour=0,
+                last_hour=24,
+                clock_code="MUS",
+            )
+        )
     with pytest.raises(IntegrityError):
         session.commit()

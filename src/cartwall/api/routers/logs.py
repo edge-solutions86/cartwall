@@ -187,9 +187,7 @@ def build(week_of: date, uow: UnitOfWork = Work) -> BuildOut:
 
 
 @router.post("/{station}/{day}/approve", response_model=LogOut)
-def approve(
-    station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work
-) -> LogOut:
+def approve(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
     grid = house.programming[house.logging_call(station)]
@@ -211,9 +209,7 @@ def approve(
 
 
 @router.post("/{station}/{day}/release", response_model=LogOut)
-def release(
-    station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work
-) -> LogOut:
+def release(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
     grid = house.programming[house.logging_call(station)]

@@ -175,9 +175,13 @@ def test_a_lines_carts_come_back_in_order():
 
 def test_an_order_comes_back_with_its_total_as_a_string():
     order = Order(
-        number="25-1044", advertiser="HYVEE", written=date(2025, 7, 21),
-        salesperson="DHOLM", lines=(a_line(1), a_line(2, rate=Money.parse("32.50"))),
-        agency="MOP", campaign="back to school",
+        number="25-1044",
+        advertiser="HYVEE",
+        written=date(2025, 7, 21),
+        salesperson="DHOLM",
+        lines=(a_line(1), a_line(2, rate=Money.parse("32.50"))),
+        agency="MOP",
+        campaign="back to school",
     )
     out = OrderOut.of(order)
     assert out.value == "4440.00"
@@ -189,8 +193,11 @@ def test_an_order_comes_back_with_its_total_as_a_string():
 
 def test_the_serialised_body_has_no_json_numbers_where_money_belongs():
     order = Order(
-        number="25-1044", advertiser="HYVEE", written=date(2025, 7, 21),
-        salesperson="DHOLM", lines=(a_line(),),
+        number="25-1044",
+        advertiser="HYVEE",
+        written=date(2025, 7, 21),
+        salesperson="DHOLM",
+        lines=(a_line(),),
     )
     body = OrderOut.of(order).model_dump(mode="json")
     assert isinstance(body["value"], str)

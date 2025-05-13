@@ -23,8 +23,12 @@ def a_file(*lines: str) -> str:
 
 
 def a_line(
-    at="07:10:00", cart="C1204", title="Hy-Vee sale", length="30.0",
-    status="played", reference="25-1044-1",
+    at="07:10:00",
+    cart="C1204",
+    title="Hy-Vee sale",
+    length="30.0",
+    status="played",
+    reference="25-1044-1",
 ):
     return f"2025-08-04,{at},{cart},{title},{length},{status},{reference}"
 

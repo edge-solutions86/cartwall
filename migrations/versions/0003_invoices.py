@@ -25,8 +25,15 @@ def upgrade() -> None:
     op.create_table(
         "invoice",
         sa.Column("number", sa.String(length=24), nullable=False),
-        sa.Column("order_number", sa.String(length=24), sa.ForeignKey("sales_order.number"), nullable=False),
-        sa.Column("advertiser", sa.String(length=16), sa.ForeignKey("advertiser.code"), nullable=False),
+        sa.Column(
+            "order_number",
+            sa.String(length=24),
+            sa.ForeignKey("sales_order.number"),
+            nullable=False,
+        ),
+        sa.Column(
+            "advertiser", sa.String(length=16), sa.ForeignKey("advertiser.code"), nullable=False
+        ),
         sa.Column("payer", sa.String(length=16), nullable=False),
         sa.Column("year", sa.Integer(), nullable=False),
         sa.Column("month", sa.Integer(), nullable=False),
@@ -38,13 +45,20 @@ def upgrade() -> None:
         sa.Column("net", sa.Integer(), nullable=False),
         sa.Column("sent", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("number", name="pk_invoice"),
-        sa.UniqueConstraint("order_number", "year", "month", name="uq_invoice_order_number_year_month"),
+        sa.UniqueConstraint(
+            "order_number", "year", "month", name="uq_invoice_order_number_year_month"
+        ),
     )
     op.create_index("ix_invoice_raised", "invoice", ["raised"], unique=False)
     op.create_table(
         "invoice_detail",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("invoice_number", sa.String(length=24), sa.ForeignKey("invoice.number", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "invoice_number",
+            sa.String(length=24),
+            sa.ForeignKey("invoice.number", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("day", sa.Date(), nullable=False),
         sa.Column("at", sa.Integer(), nullable=False),
         sa.Column("line", sa.Integer(), nullable=False),
@@ -57,7 +71,12 @@ def upgrade() -> None:
     op.create_table(
         "invoice_summary",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("invoice_number", sa.String(length=24), sa.ForeignKey("invoice.number", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "invoice_number",
+            sa.String(length=24),
+            sa.ForeignKey("invoice.number", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("line", sa.Integer(), nullable=False),
         sa.Column("station", sa.String(length=16), nullable=False),
         sa.Column("daypart", sa.String(length=16), nullable=False),
@@ -66,7 +85,9 @@ def upgrade() -> None:
         sa.Column("spots", sa.Integer(), nullable=False),
         sa.Column("gross", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id", name="pk_invoice_summary"),
-        sa.UniqueConstraint("invoice_number", "line", name="uq_invoice_summary_invoice_number_line"),
+        sa.UniqueConstraint(
+            "invoice_number", "line", name="uq_invoice_summary_invoice_number_line"
+        ),
     )
 
 

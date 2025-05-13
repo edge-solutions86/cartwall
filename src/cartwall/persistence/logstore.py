@@ -109,9 +109,7 @@ class LogRepository:
     def status(self, station: str, day: date) -> LogStatus:
         row = self._row(station, day)
         if row is None:
-            raise LookupFailure(
-                f"{station} has no log for {day}", station=station, day=str(day)
-            )
+            raise LookupFailure(f"{station} has no log for {day}", station=station, day=str(day))
         return status_from(row)
 
     def save(self, board: DayBoard, force: bool = False) -> LogStatus:
@@ -188,9 +186,7 @@ class LogRepository:
     def _require(self, station: str, day: date) -> LogRow:
         row = self._row(station, day)
         if row is None:
-            raise LookupFailure(
-                f"{station} has no log for {day}", station=station, day=str(day)
-            )
+            raise LookupFailure(f"{station} has no log for {day}", station=station, day=str(day))
         return row
 
     def between(self, station: str, first: date, last: date) -> list[LogStatus]:

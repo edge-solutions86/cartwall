@@ -85,9 +85,7 @@ class InvoiceDetailRow(Base):
     __tablename__ = "invoice_detail"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    invoice_number: Mapped[str] = mapped_column(
-        ForeignKey("invoice.number", ondelete="CASCADE")
-    )
+    invoice_number: Mapped[str] = mapped_column(ForeignKey("invoice.number", ondelete="CASCADE"))
     day: Mapped[date] = mapped_column(Date)
     #: When it really ran, off the as-run. Not when it was logged.
     at: Mapped[AirTime] = mapped_column(ClockTenths)
@@ -106,15 +104,11 @@ class InvoiceDetailRow(Base):
 class InvoiceSummaryRow(Base):
     __tablename__ = "invoice_summary"
     __table_args__ = (
-        UniqueConstraint(
-            "invoice_number", "line", name="uq_invoice_summary_invoice_number_line"
-        ),
+        UniqueConstraint("invoice_number", "line", name="uq_invoice_summary_invoice_number_line"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    invoice_number: Mapped[str] = mapped_column(
-        ForeignKey("invoice.number", ondelete="CASCADE")
-    )
+    invoice_number: Mapped[str] = mapped_column(ForeignKey("invoice.number", ondelete="CASCADE"))
     line: Mapped[int] = mapped_column(Integer)
     station: Mapped[str] = mapped_column(String(CODE_LENGTH))
     daypart: Mapped[str] = mapped_column(String(CODE_LENGTH))

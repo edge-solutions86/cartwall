@@ -78,9 +78,7 @@ class RuleBook:
     def dayparts_for(self, hour: int) -> tuple[str, ...]:
         """Daypart codes covering this hour, narrowest first."""
         weekday = Weekday(self.on.weekday())
-        return tuple(
-            daypart.code for daypart in self.dayparts.covering(weekday, AirTime.at(hour))
-        )
+        return tuple(daypart.code for daypart in self.dayparts.covering(weekday, AirTime.at(hour)))
 
     def rate(self, daypart: str, grade: ClassOfTime, length: SpotLength):
         return self.card.rate(daypart, grade, length)

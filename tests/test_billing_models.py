@@ -35,12 +35,18 @@ def session(tmp_path, cluster, accounts):
         AccountRepository(session).save_book(accounts)
         OrderRepository(session).save(
             Order(
-                number="25-1044", advertiser="HYVEE", written=date(2025, 7, 21),
+                number="25-1044",
+                advertiser="HYVEE",
+                written=date(2025, 7, 21),
                 salesperson="DHOLM",
                 lines=(
                     Line(
-                        number=1, station="KWLO", daypart="AMD", grade=FIXED,
-                        length=THIRTY, rate=Money.dollars(60),
+                        number=1,
+                        station="KWLO",
+                        daypart="AMD",
+                        grade=FIXED,
+                        length=THIRTY,
+                        rate=Money.dollars(60),
                         flight=Flight.build(MONDAY, date(2025, 8, 29), "M-F", 12),
                     ),
                 ),
@@ -68,8 +74,11 @@ def an_invoice(number="25-1001", **kw):
 
 
 def test_an_invoice_round_trips_with_its_money_stored_not_derived(session):
-    session.add(an_invoice(rate=Decimal("0.15"), commission=Money.dollars(18),
-                           net=Money.dollars(102), payer="MOP"))
+    session.add(
+        an_invoice(
+            rate=Decimal("0.15"), commission=Money.dollars(18), net=Money.dollars(102), payer="MOP"
+        )
+    )
     session.commit()
     session.expire_all()
     found = session.get(InvoiceRow, "25-1001")
@@ -113,12 +122,30 @@ def test_an_invoice_cannot_name_an_order_that_is_not_on_file(session):
 def test_the_detail_comes_back_in_air_order(session):
     invoice = an_invoice()
     invoice.details = [
-        InvoiceDetailRow(day=date(2025, 8, 5), at=AirTime.at(7, 10), line=1,
-                         length=THIRTY, rate=Money.dollars(60), cart="C1204"),
-        InvoiceDetailRow(day=MONDAY, at=AirTime.at(9, 38), line=1,
-                         length=THIRTY, rate=Money.dollars(60), cart="C1204"),
-        InvoiceDetailRow(day=MONDAY, at=AirTime.at(7, 10, 4), line=1,
-                         length=THIRTY, rate=Money.dollars(60), cart="C1204"),
+        InvoiceDetailRow(
+            day=date(2025, 8, 5),
+            at=AirTime.at(7, 10),
+            line=1,
+            length=THIRTY,
+            rate=Money.dollars(60),
+            cart="C1204",
+        ),
+        InvoiceDetailRow(
+            day=MONDAY,
+            at=AirTime.at(9, 38),
+            line=1,
+            length=THIRTY,
+            rate=Money.dollars(60),
+            cart="C1204",
+        ),
+        InvoiceDetailRow(
+            day=MONDAY,
+            at=AirTime.at(7, 10, 4),
+            line=1,
+            length=THIRTY,
+            rate=Money.dollars(60),
+            cart="C1204",
+        ),
     ]
     session.add(invoice)
     session.commit()
@@ -135,8 +162,15 @@ def test_the_detail_comes_back_in_air_order(session):
 def test_a_detail_line_records_whether_the_spot_moved(session):
     invoice = an_invoice()
     invoice.details = [
-        InvoiceDetailRow(day=MONDAY, at=AirTime.at(8, 22), line=1, length=SIXTY,
-                         rate=Money.dollars(105), cart="C1205", moved=True),
+        InvoiceDetailRow(
+            day=MONDAY,
+            at=AirTime.at(8, 22),
+            line=1,
+            length=SIXTY,
+            rate=Money.dollars(105),
+            cart="C1205",
+            moved=True,
+        ),
     ]
     session.add(invoice)
     session.commit()
@@ -150,10 +184,24 @@ def test_a_detail_line_records_whether_the_spot_moved(session):
 def test_the_summary_comes_back_in_line_order(session):
     invoice = an_invoice()
     invoice.summaries = [
-        InvoiceSummaryRow(line=2, station="KCRR", daypart="MID", length=THIRTY,
-                          rate=Money.dollars(22), spots=4, gross=Money.dollars(88)),
-        InvoiceSummaryRow(line=1, station="KWLO", daypart="AMD", length=THIRTY,
-                          rate=Money.dollars(60), spots=2, gross=Money.dollars(120)),
+        InvoiceSummaryRow(
+            line=2,
+            station="KCRR",
+            daypart="MID",
+            length=THIRTY,
+            rate=Money.dollars(22),
+            spots=4,
+            gross=Money.dollars(88),
+        ),
+        InvoiceSummaryRow(
+            line=1,
+            station="KWLO",
+            daypart="AMD",
+            length=THIRTY,
+            rate=Money.dollars(60),
+            spots=2,
+            gross=Money.dollars(120),
+        ),
     ]
     session.add(invoice)
     session.commit()
@@ -167,10 +215,24 @@ def test_the_summary_comes_back_in_line_order(session):
 def test_a_summary_cannot_carry_one_line_twice(session):
     invoice = an_invoice()
     invoice.summaries = [
-        InvoiceSummaryRow(line=1, station="KWLO", daypart="AMD", length=THIRTY,
-                          rate=Money.dollars(60), spots=1, gross=Money.dollars(60)),
-        InvoiceSummaryRow(line=1, station="KWLO", daypart="MID", length=THIRTY,
-                          rate=Money.dollars(60), spots=1, gross=Money.dollars(60)),
+        InvoiceSummaryRow(
+            line=1,
+            station="KWLO",
+            daypart="AMD",
+            length=THIRTY,
+            rate=Money.dollars(60),
+            spots=1,
+            gross=Money.dollars(60),
+        ),
+        InvoiceSummaryRow(
+            line=1,
+            station="KWLO",
+            daypart="MID",
+            length=THIRTY,
+            rate=Money.dollars(60),
+            spots=1,
+            gross=Money.dollars(60),
+        ),
     ]
     session.add(invoice)
     with pytest.raises(IntegrityError):
@@ -180,12 +242,25 @@ def test_a_summary_cannot_carry_one_line_twice(session):
 def test_deleting_an_invoice_takes_its_detail_and_summary_with_it(session):
     invoice = an_invoice()
     invoice.details = [
-        InvoiceDetailRow(day=MONDAY, at=AirTime.at(7, 10), line=1, length=THIRTY,
-                         rate=Money.dollars(60), cart="C1204"),
+        InvoiceDetailRow(
+            day=MONDAY,
+            at=AirTime.at(7, 10),
+            line=1,
+            length=THIRTY,
+            rate=Money.dollars(60),
+            cart="C1204",
+        ),
     ]
     invoice.summaries = [
-        InvoiceSummaryRow(line=1, station="KWLO", daypart="AMD", length=THIRTY,
-                          rate=Money.dollars(60), spots=1, gross=Money.dollars(60)),
+        InvoiceSummaryRow(
+            line=1,
+            station="KWLO",
+            daypart="AMD",
+            length=THIRTY,
+            rate=Money.dollars(60),
+            spots=1,
+            gross=Money.dollars(60),
+        ),
     ]
     session.add(invoice)
     session.commit()
@@ -211,7 +286,5 @@ def test_invoices_can_be_found_by_the_day_they_were_raised(session):
     session.add(an_invoice("25-1001", month=8, raised=date(2025, 8, 25)))
     session.add(an_invoice("25-1002", month=9, raised=date(2025, 9, 29)))
     session.commit()
-    found = session.scalars(
-        select(InvoiceRow).where(InvoiceRow.raised <= date(2025, 8, 31))
-    ).all()
+    found = session.scalars(select(InvoiceRow).where(InvoiceRow.raised <= date(2025, 8, 31))).all()
     assert [row.number for row in found] == ["25-1001"]

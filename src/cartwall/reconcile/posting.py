@@ -63,9 +63,7 @@ class Posting:
 def post(session: Session, result: Reconciliation, force: bool = False) -> Posting:
     """Write a reconciliation onto the stored log for that day."""
     row = session.scalars(
-        select(LogRow).where(
-            LogRow.station == result.station, LogRow.day == result.day
-        )
+        select(LogRow).where(LogRow.station == result.station, LogRow.day == result.day)
     ).first()
     if row is None:
         raise NotAired(
@@ -81,8 +79,9 @@ def post(session: Session, result: Reconciliation, force: bool = False) -> Posti
             state=row.state.value,
         )
 
-    spots = {(spot.order_number, spot.line, spot.hour, spot.break_number): spot
-             for spot in row.spots}
+    spots = {
+        (spot.order_number, spot.line, spot.hour, spot.break_number): spot for spot in row.spots
+    }
     report = Posting(result.station, result.day)
 
     for spot in row.spots:

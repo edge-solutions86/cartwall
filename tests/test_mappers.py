@@ -157,18 +157,36 @@ def test_an_account_on_hold_stays_on_hold():
 
 def test_a_cut_survives_the_round_trip_with_its_running_time():
     cut = Cut(
-        cart="C1204", isci="HYVE2501", advertiser="HYVEE", length=THIRTY,
-        actual=Duration(301), first_air=MONDAY, last_air=date(2025, 9, 1), killed=True,
+        cart="C1204",
+        isci="HYVE2501",
+        advertiser="HYVEE",
+        length=THIRTY,
+        actual=Duration(301),
+        first_air=MONDAY,
+        last_air=date(2025, 9, 1),
+        killed=True,
     )
     assert cut_from(cut_row(cut)) == cut
 
 
 def test_a_cut_library_survives_the_round_trip():
     cuts = [
-        Cut(cart="C1204", isci="HYVE2501", advertiser="HYVEE", length=THIRTY,
-            actual=Duration(300), first_air=MONDAY),
-        Cut(cart="C1205", isci="HYVE2502", advertiser="HYVEE", length=SpotLength(60),
-            actual=Duration(600), first_air=MONDAY),
+        Cut(
+            cart="C1204",
+            isci="HYVE2501",
+            advertiser="HYVEE",
+            length=THIRTY,
+            actual=Duration(300),
+            first_air=MONDAY,
+        ),
+        Cut(
+            cart="C1205",
+            isci="HYVE2502",
+            advertiser="HYVEE",
+            length=SpotLength(60),
+            actual=Duration(600),
+            first_air=MONDAY,
+        ),
     ]
     library = cut_library_from([cut_row(cut) for cut in cuts])
     assert len(library) == 2
@@ -251,8 +269,11 @@ def test_an_order_survives_the_round_trip_whole():
 
 def test_each_line_can_name_the_card_it_was_priced_from():
     order = Order(
-        number="25-1044", advertiser="HYVEE", written=date(2025, 7, 21),
-        salesperson="DHOLM", lines=(a_line(1), a_line(2)),
+        number="25-1044",
+        advertiser="HYVEE",
+        written=date(2025, 7, 21),
+        salesperson="DHOLM",
+        lines=(a_line(1), a_line(2)),
     )
     row = order_row(order, {1: "KWLO-25", 2: "KCRR-25"})
     assert [line.card_code for line in row.lines] == ["KWLO-25", "KCRR-25"]
@@ -268,7 +289,11 @@ def test_an_empty_order_survives_the_round_trip():
 @pytest.mark.parametrize("grade", list(ClassOfTime))
 def test_every_class_of_time_survives_the_round_trip(grade):
     line = Line(
-        number=1, station="KWLO", daypart="AMD", grade=grade, length=THIRTY,
+        number=1,
+        station="KWLO",
+        daypart="AMD",
+        grade=grade,
+        length=THIRTY,
         rate=Money.dollars(60),
         flight=Flight.build(MONDAY, date(2025, 8, 29), "M-F", 12),
     )

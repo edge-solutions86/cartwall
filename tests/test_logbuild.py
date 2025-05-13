@@ -113,8 +113,14 @@ def test_a_rebuild_keeps_the_hand_placed_spots(engine, house):
         lay = Lay(DayBoard.build(grid, MONDAY), house.book("KWLO", MONDAY))
         book = uow.accounts.book()
         ask = Ask(
-            order="25-0900", line=1, advertiser=book.advertiser("SLUMB"),
-            daypart="AMD", length=THIRTY, grade=FIXED, cart="C9001", agency="CRS",
+            order="25-0900",
+            line=1,
+            advertiser=book.advertiser("SLUMB"),
+            daypart="AMD",
+            length=THIRTY,
+            grade=FIXED,
+            cart="C9001",
+            agency="CRS",
         )
         pin(lay, book, ask, 7, 5)
         LogRepository(uow.session).save(lay.board)
@@ -203,8 +209,13 @@ def test_restoring_pins_copies_only_the_hand_placed_spots(house, accounts):
     grid = house.programming["KWLO"]
     lay = Lay(DayBoard.build(grid, MONDAY), house.book("KWLO", MONDAY))
     ask = Ask(
-        order="25-0900", line=1, advertiser=accounts.advertiser("SLUMB"),
-        daypart="AMD", length=THIRTY, grade=FIXED, cart="C9001",
+        order="25-0900",
+        line=1,
+        advertiser=accounts.advertiser("SLUMB"),
+        daypart="AMD",
+        length=THIRTY,
+        grade=FIXED,
+        cart="C9001",
     )
     pin(lay, accounts, ask, 7, 5)
     from cartwall.scheduling.pinning import put_spot

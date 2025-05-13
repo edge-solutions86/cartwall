@@ -106,8 +106,7 @@ def test_a_sixty_is_eligible_in_fewer_places_than_a_thirty(board, book, accounts
     put(board, 7, 2, "BLACK", length=THIRTY, line=3)
     thirties = [(a.hour, a.number) for a in eligible_avails(board, book, an_ask(accounts))]
     sixties = [
-        (a.hour, a.number)
-        for a in eligible_avails(board, book, an_ask(accounts, length=SIXTY))
+        (a.hour, a.number) for a in eligible_avails(board, book, an_ask(accounts, length=SIXTY))
     ]
     assert (7, 2) in thirties
     assert (7, 2) not in sixties

@@ -47,9 +47,7 @@ class OrderRow(Base):
     written: Mapped[date] = mapped_column(Date)
     salesperson: Mapped[str] = mapped_column(String(CODE_LENGTH))
     campaign: Mapped[str] = mapped_column(String(NAME_LENGTH), default="")
-    status: Mapped[OrderStatus] = mapped_column(
-        EnumValue(OrderStatus), default=OrderStatus.PENDING
-    )
+    status: Mapped[OrderStatus] = mapped_column(EnumValue(OrderStatus), default=OrderStatus.PENDING)
 
     lines: Mapped[list[LineRow]] = relationship(
         back_populates="order",
@@ -69,9 +67,7 @@ class LineRow(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    order_number: Mapped[str] = mapped_column(
-        ForeignKey("sales_order.number", ondelete="CASCADE")
-    )
+    order_number: Mapped[str] = mapped_column(ForeignKey("sales_order.number", ondelete="CASCADE"))
     number: Mapped[int] = mapped_column(Integer)
     station: Mapped[str] = mapped_column(ForeignKey("station.call"))
     daypart: Mapped[str] = mapped_column(String(CODE_LENGTH))
@@ -101,9 +97,7 @@ class LineRow(Base):
 
 class RotationRow(Base):
     __tablename__ = "line_rotation"
-    __table_args__ = (
-        UniqueConstraint("line_id", "cart", name="uq_line_rotation_line_id_cart"),
-    )
+    __table_args__ = (UniqueConstraint("line_id", "cart", name="uq_line_rotation_line_id_cart"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     line_id: Mapped[int] = mapped_column(ForeignKey("sales_line.id", ondelete="CASCADE"))
@@ -112,9 +106,7 @@ class RotationRow(Base):
     position: Mapped[int] = mapped_column(Integer)
     cart: Mapped[str] = mapped_column(ForeignKey("cut.cart"))
     weight: Mapped[int] = mapped_column(Integer, default=1)
-    kind: Mapped[RotationKind] = mapped_column(
-        EnumValue(RotationKind), default=RotationKind.EVEN
-    )
+    kind: Mapped[RotationKind] = mapped_column(EnumValue(RotationKind), default=RotationKind.EVEN)
 
     line: Mapped[LineRow] = relationship(back_populates="rotation")
 

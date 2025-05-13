@@ -54,8 +54,12 @@ def board(grid):
 def put(board, hour, number, code="HYVEE", length=THIRTY, order="25-1044", line=1, **kw):
     board.avail(hour, number).add(
         Placement(
-            order=order, line=line, advertiser=code, length=length,
-            grade=kw.pop("grade", FIXED), cart=kw.pop("cart", "C1204"),
+            order=order,
+            line=line,
+            advertiser=code,
+            length=length,
+            grade=kw.pop("grade", FIXED),
+            cart=kw.pop("cart", "C1204"),
             fixed=kw.pop("fixed", False),
         )
     )
@@ -66,7 +70,11 @@ def a_bump(day=MONDAY, line=3):
         placement=Placement(
             order="25-0100", line=line, advertiser="SLUMB", length=THIRTY, grade=IMMEDIATE
         ),
-        day=day, hour=7, number=2, by_order="25-9000", by_line=1,
+        day=day,
+        hour=7,
+        number=2,
+        by_order="25-9000",
+        by_line=1,
     )
 
 

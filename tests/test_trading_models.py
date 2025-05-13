@@ -31,8 +31,14 @@ def session(tmp_path):
     factory = session_factory(engine)
     with factory() as session:
         session.add(
-            StationRow(call="KWLO", band=Band.FM, frequency=Decimal("99.1"),
-                       city_of_license="Waterloo", service=Service.MUSIC, market="WCF")
+            StationRow(
+                call="KWLO",
+                band=Band.FM,
+                frequency=Decimal("99.1"),
+                city_of_license="Waterloo",
+                service=Service.MUSIC,
+                market="WCF",
+            )
         )
         session.add(AgencyRow(code="MOP", name="Mopar Media", rate=Decimal("0.15")))
         session.add(AdvertiserRow(code="HYVEE", name="Hy-Vee"))
@@ -73,8 +79,14 @@ def an_order(session, number="25-1044", lines=None, **kw):
 
 
 def a_cut(cart="C1204", isci="HYVE2501"):
-    return CutRow(cart=cart, isci=isci, advertiser="HYVEE", length=THIRTY,
-                  actual=Duration(300), first_air=MONDAY)
+    return CutRow(
+        cart=cart,
+        isci=isci,
+        advertiser="HYVEE",
+        length=THIRTY,
+        actual=Duration(300),
+        first_air=MONDAY,
+    )
 
 
 def test_an_order_starts_pending_and_round_trips(session):

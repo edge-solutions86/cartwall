@@ -30,9 +30,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 def write_order(body: OrderIn, uow: UnitOfWork = Work) -> OrderOut:
     """Write a new order. The number comes from the caller and must be free."""
     if uow.orders.exists(body.number):
-        raise ConflictError(
-            f"order {body.number} is already on file", order=body.number
-        )
+        raise ConflictError(f"order {body.number} is already on file", order=body.number)
     order = body.to_domain()
     uow.orders.save(order)
     return OrderOut.of(order)

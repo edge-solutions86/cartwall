@@ -141,9 +141,7 @@ def test_an_account_book_goes_in_and_comes_back_whole(book_repo, accounts):
     assert back.agencies == accounts.agencies
 
 
-def test_saving_the_book_twice_does_not_duplicate_the_conflict_codes(
-    session, book_repo, accounts
-):
+def test_saving_the_book_twice_does_not_duplicate_the_conflict_codes(session, book_repo, accounts):
     book_repo.save_book(accounts)
     session.commit()
     back = book_repo.book()
@@ -160,8 +158,14 @@ def test_an_account_that_changes_credit_is_written_over(session, book_repo, acco
 
 
 def test_a_cut_goes_in_and_comes_back(session, book_repo):
-    cut = Cut(cart="C1204", isci="HYVE2501", advertiser="HYVEE", length=THIRTY,
-              actual=Duration(301), first_air=MONDAY)
+    cut = Cut(
+        cart="C1204",
+        isci="HYVE2501",
+        advertiser="HYVEE",
+        length=THIRTY,
+        actual=Duration(301),
+        first_air=MONDAY,
+    )
     book_repo.file_cut(cut)
     session.commit()
     assert book_repo.cut("C1204") == cut
@@ -170,8 +174,14 @@ def test_a_cut_goes_in_and_comes_back(session, book_repo):
 def test_a_redub_replaces_the_cart(session, book_repo):
     for tenths in (299, 302):
         book_repo.file_cut(
-            Cut(cart="C1204", isci="HYVE2501", advertiser="HYVEE", length=THIRTY,
-                actual=Duration(tenths), first_air=MONDAY)
+            Cut(
+                cart="C1204",
+                isci="HYVE2501",
+                advertiser="HYVEE",
+                length=THIRTY,
+                actual=Duration(tenths),
+                first_air=MONDAY,
+            )
         )
         session.commit()
     assert book_repo.cut("C1204").actual == Duration(302)
@@ -185,8 +195,14 @@ def test_asking_for_a_cart_nobody_dubbed(book_repo):
 def test_the_library_can_be_read_whole_or_for_one_advertiser(session, book_repo):
     for cart, advertiser in (("C1204", "HYVEE"), ("C1300", "SLUMB")):
         book_repo.file_cut(
-            Cut(cart=cart, isci="HYVE2501", advertiser=advertiser, length=THIRTY,
-                actual=Duration(300), first_air=MONDAY)
+            Cut(
+                cart=cart,
+                isci="HYVE2501",
+                advertiser=advertiser,
+                length=THIRTY,
+                actual=Duration(300),
+                first_air=MONDAY,
+            )
         )
     session.commit()
     assert len(book_repo.library()) == 2
@@ -251,9 +267,7 @@ def test_asking_for_an_order_that_is_not_on_file(session):
         OrderRepository(session).get("25-9999")
 
 
-def test_the_orders_of_one_advertiser_come_back_in_number_order(
-    session, stations, book_repo
-):
+def test_the_orders_of_one_advertiser_come_back_in_number_order(session, stations, book_repo):
     repo = OrderRepository(session)
     repo.save(an_order("25-2000"))
     repo.save(an_order("25-1044"))
@@ -268,7 +282,11 @@ def test_the_orders_running_on_a_day_are_the_ones_with_a_flight_over_it(
 ):
     repo = OrderRepository(session)
     away = Line(
-        number=1, station="KWLO", daypart="AMD", grade=FIXED, length=THIRTY,
+        number=1,
+        station="KWLO",
+        daypart="AMD",
+        grade=FIXED,
+        length=THIRTY,
         rate=Money.dollars(60),
         flight=Flight.build(date(2025, 9, 1), date(2025, 9, 30), "M-F", 12),
     )

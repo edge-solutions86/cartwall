@@ -223,8 +223,7 @@ def advertiser_row(advertiser: Advertiser) -> AdvertiserRow:
         credit=advertiser.credit,
     )
     row.categories = [
-        CategoryRow(path=code.path, root=code.parts[0])
-        for code in sorted(advertiser.categories)
+        CategoryRow(path=code.path, root=code.parts[0]) for code in sorted(advertiser.categories)
     ]
     return row
 
@@ -240,9 +239,7 @@ def advertiser_from(row: AdvertiserRow) -> Advertiser:
     )
 
 
-def account_book_from(
-    agencies: list[AgencyRow], advertisers: list[AdvertiserRow]
-) -> AccountBook:
+def account_book_from(agencies: list[AgencyRow], advertisers: list[AdvertiserRow]) -> AccountBook:
     """Parents before children, so the book's own checks can run."""
     book = AccountBook()
     for agency in agencies:
@@ -300,9 +297,7 @@ def rate_card_from(row: RateCardRow) -> RateCard:
         code=row.code,
         station=row.station,
         effective=row.effective,
-        quotes=tuple(
-            Quote(quote.daypart, quote.grade, quote.thirty) for quote in row.quotes
-        ),
+        quotes=tuple(Quote(quote.daypart, quote.grade, quote.thirty) for quote in row.quotes),
     )
 
 

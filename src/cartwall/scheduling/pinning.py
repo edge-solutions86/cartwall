@@ -150,9 +150,7 @@ def unpin(lay: Lay, order: str, line: int, hour: int, number: int) -> Placement:
     """Take a hand placed spot back off, so the builder can have the unit."""
     avail = lay.board.avail(hour, number)
     if not avail.holds(order, line):
-        raise PinError(
-            f"{order}-{line} is not in {lay.board.station} hour {hour} break {number}"
-        )
+        raise PinError(f"{order}-{line} is not in {lay.board.station} hour {hour} break {number}")
     dropped = avail.drop(order, line)
     lay.neighbours = []
     return dropped

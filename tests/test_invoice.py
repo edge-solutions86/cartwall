@@ -22,8 +22,13 @@ MONDAY = date(2025, 8, 4)
 
 def a_detail(day=MONDAY, at="7:10:00a", line=1, rate="60.00", length=THIRTY, **kw):
     return Detail(
-        day=day, at=at, line=line, length=length, rate=Money.parse(rate),
-        cart=kw.pop("cart", "C1204"), moved=kw.pop("moved", False),
+        day=day,
+        at=at,
+        line=line,
+        length=length,
+        rate=Money.parse(rate),
+        cart=kw.pop("cart", "C1204"),
+        moved=kw.pop("moved", False),
     )
 
 
@@ -48,8 +53,12 @@ def test_an_invoice_that_cannot_be_raised():
         Invoice(number="25-1001", order="", advertiser="H", payer="H", month=AUGUST)
     with pytest.raises(InvoiceError, match="not a commission"):
         Invoice(
-            number="25-1001", order="25-1044", advertiser="H", payer="H",
-            month=AUGUST, commission_rate=Decimal("1"),
+            number="25-1001",
+            order="25-1044",
+            advertiser="H",
+            payer="H",
+            month=AUGUST,
+            commission_rate=Decimal("1"),
         )
 
 

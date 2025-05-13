@@ -40,8 +40,12 @@ def grid():
 def put(board, hour, number, cart="C1204", line=1, code="HYVEE"):
     board.avail(hour, number).add(
         Placement(
-            order="25-1044", line=line, advertiser=code, length=THIRTY,
-            grade=FIXED, cart=cart,
+            order="25-1044",
+            line=line,
+            advertiser=code,
+            length=THIRTY,
+            grade=FIXED,
+            cart=cart,
         )
     )
 
@@ -180,9 +184,7 @@ def test_the_report_reads_as_a_sentence(session, grid):
     aired_day(session, grid, board)
     rows = parse(a_file(ran("07:10:00", reference="25-1044-1")))
     report = post(session, reconcile(DayLog.build(grid, board), rows))
-    assert str(report) == (
-        "KWLO 2025-08-04: 1 aired, 1 missed, 0 moved, 0 not on the log"
-    )
+    assert str(report) == ("KWLO 2025-08-04: 1 aired, 1 missed, 0 moved, 0 not on the log")
 
 
 def test_billing_reads_only_what_aired(session, grid):
@@ -191,11 +193,13 @@ def test_billing_reads_only_what_aired(session, grid):
     put(board, 9, 4, line=2, cart="C1205")
     put(board, 15, 2, line=3, cart="C1206")
     aired_day(session, grid, board)
-    rows = parse(a_file(
-        ran("07:10:00", reference="25-1044-1"),
-        ran("09:38:00", cart="C1205", reference="25-1044-2"),
-        ran("15:10:00", cart="C1206", status="error", reference="25-1044-3"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:00", reference="25-1044-1"),
+            ran("09:38:00", cart="C1205", reference="25-1044-2"),
+            ran("15:10:00", cart="C1206", status="error", reference="25-1044-3"),
+        )
+    )
     post(session, reconcile(DayLog.build(grid, board), rows))
     session.commit()
 

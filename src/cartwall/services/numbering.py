@@ -111,9 +111,7 @@ class Numbering:
             raise NumberingError(f"a series cannot open below {FIRST}")
         row = self._counter(series, year)
         if row.last > FIRST:
-            raise NumberingError(
-                f"series {series} has already issued numbers in {year}"
-            )
+            raise NumberingError(f"series {series} has already issued numbers in {year}")
         row.last = at
         self.session.flush()
 

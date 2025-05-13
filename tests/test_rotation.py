@@ -138,7 +138,5 @@ def test_dropping_the_last_cart_is_refused_because_the_line_still_has_to_run():
 
 def test_a_rotation_reads_the_way_traffic_writes_it_down():
     assert str(Rotation.even("C1204", "C1205")) == "even: C1204, C1205"
-    assert str(Rotation.weighted([("C1204", 2), ("C1205", 1)])) == (
-        "weighted: C1204 x2, C1205"
-    )
+    assert str(Rotation.weighted([("C1204", 2), ("C1205", 1)])) == ("weighted: C1204 x2, C1205")
     assert len(Rotation.even("C1204", "C1205")) == 2

@@ -178,12 +178,7 @@ class ClockGrid:
         return not self.gaps()
 
     def selling_hours(self) -> int:
-        return sum(
-            1
-            for day in Weekday
-            for hour in range(HOURS_IN_DAY)
-            if self.sells(day, hour)
-        )
+        return sum(1 for day in Weekday for hour in range(HOURS_IN_DAY) if self.sells(day, hour))
 
     def units_a_week(self) -> int:
         """Every local unit the grid puts on the air in a week."""

@@ -103,9 +103,7 @@ def warnings(log: DayLog) -> list[Problem]:
     found = []
     holes = log.open_units
     if holes:
-        found.append(
-            Problem("unsold", f"{log.station} {log.day}", f"{holes} units did not sell")
-        )
+        found.append(Problem("unsold", f"{log.station} {log.day}", f"{holes} units did not sell"))
     return found
 
 

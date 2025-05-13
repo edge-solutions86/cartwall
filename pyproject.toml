@@ -41,6 +41,8 @@ filterwarnings = [
 ]
 
 [tool.ruff]
+# The formatter and the linter share this. A hundred fits a table definition
+# with a named constraint on one line, which is most of the persistence layer.
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]

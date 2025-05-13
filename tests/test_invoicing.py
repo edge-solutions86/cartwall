@@ -56,9 +56,14 @@ def an_order(number="25-1044", advertiser="HYVEE", agency=None, rate="60.00", li
         written=date(2025, 7, 21),
         salesperson="DHOLM",
         agency=agency,
-        lines=lines or (
+        lines=lines
+        or (
             Line(
-                number=1, station="KWLO", daypart="AMD", grade=FIXED, length=THIRTY,
+                number=1,
+                station="KWLO",
+                daypart="AMD",
+                grade=FIXED,
+                length=THIRTY,
                 rate=Money.parse(rate),
                 flight=Flight.build(MONDAY, date(2025, 8, 8), "M-F", 10),
             ),
@@ -71,8 +76,9 @@ def a_day(uow, grid, day, spots, asrun_lines):
     board = DayBoard.build(grid, day)
     for hour, number, order, line, cart in spots:
         board.avail(hour, number).add(
-            Placement(order=order, line=line, advertiser="HYVEE", length=THIRTY,
-                      grade=FIXED, cart=cart)
+            Placement(
+                order=order, line=line, advertiser="HYVEE", length=THIRTY, grade=FIXED, cart=cart
+            )
         )
     logs = LogRepository(uow.session)
     logs.save(board)
@@ -99,8 +105,7 @@ def test_an_order_that_aired_gets_an_invoice(engine, house):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "07:10:00")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "07:10:00")])
         report = run_month(uow, AUGUST, RAISED)
         uow.commit()
     assert report.count == 1
@@ -119,7 +124,9 @@ def test_only_the_spots_that_aired_are_billed(engine):
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
         a_day(
-            uow, grid, MONDAY,
+            uow,
+            grid,
+            MONDAY,
             [(7, 2, "25-1044", 1, "C1204"), (9, 2, "25-1044", 1, "C1204")],
             [
                 ran("2025-08-04", "07:10:00"),
@@ -140,8 +147,14 @@ def test_a_day_nobody_posted_an_as_run_for_bills_nothing(engine):
         uow.orders.save(an_order())
         board = DayBoard.build(grid, MONDAY)
         board.avail(7, 2).add(
-            Placement(order="25-1044", line=1, advertiser="HYVEE", length=THIRTY,
-                      grade=FIXED, cart="C1204")
+            Placement(
+                order="25-1044",
+                line=1,
+                advertiser="HYVEE",
+                length=THIRTY,
+                grade=FIXED,
+                cart="C1204",
+            )
         )
         LogRepository(uow.session).save(board)
         report = run_month(uow, AUGUST, RAISED)
@@ -152,8 +165,7 @@ def test_an_agency_order_is_billed_to_the_agency_net_of_commission(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order(advertiser="DEALF", agency="MOP"))
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "07:10:00")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "07:10:00")])
         run_month(uow, AUGUST, RAISED)
         uow.commit()
     with unit_of_work(engine) as uow:
@@ -169,8 +181,7 @@ def test_the_detail_carries_the_time_it_really_ran(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "07:10:04")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "07:10:04")])
         run_month(uow, AUGUST, RAISED)
         uow.commit()
     with unit_of_work(engine) as uow:
@@ -184,8 +195,7 @@ def test_a_spot_that_moved_is_marked_on_the_detail(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "08:22:00")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "08:22:00")])
         run_month(uow, AUGUST, RAISED)
         uow.commit()
     with unit_of_work(engine) as uow:
@@ -197,7 +207,9 @@ def test_the_summary_rolls_up_what_the_detail_says(engine):
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
         a_day(
-            uow, grid, MONDAY,
+            uow,
+            grid,
+            MONDAY,
             [(7, 2, "25-1044", 1, "C1204"), (9, 2, "25-1044", 1, "C1204")],
             [ran("2025-08-04", "07:10:00"), ran("2025-08-04", "09:10:00")],
         )
@@ -215,8 +227,7 @@ def test_running_the_month_twice_does_not_raise_a_second_invoice(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "07:10:00")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "07:10:00")])
         run_month(uow, AUGUST, RAISED)
         uow.commit()
     with unit_of_work(engine) as uow:
@@ -230,8 +241,7 @@ def test_raising_one_order_twice_is_refused_outright(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-04", "07:10:00")])
+        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 1, "C1204")], [ran("2025-08-04", "07:10:00")])
         raise_one(uow, "25-1044", AUGUST, RAISED)
         with pytest.raises(AlreadyInvoiced, match="already has an invoice") as caught:
             raise_one(uow, "25-1044", AUGUST, RAISED)
@@ -251,7 +261,9 @@ def test_the_numbers_come_off_the_counter_without_gaps(engine):
         for number in ("25-1044", "25-2000", "25-3000"):
             uow.orders.save(an_order(number))
         a_day(
-            uow, grid, MONDAY,
+            uow,
+            grid,
+            MONDAY,
             [
                 (7, 2, "25-1044", 1, "C1204"),
                 (9, 2, "25-2000", 1, "C1205"),
@@ -274,15 +286,28 @@ def test_a_month_boundary_is_the_broadcast_one(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(
-            an_order(lines=(
-                Line(number=1, station="KWLO", daypart="AMD", grade=FIXED,
-                     length=THIRTY, rate=Money.dollars(60),
-                     flight=Flight.build(date(2025, 8, 18), date(2025, 8, 29), "M-F", 5)),
-            ))
+            an_order(
+                lines=(
+                    Line(
+                        number=1,
+                        station="KWLO",
+                        daypart="AMD",
+                        grade=FIXED,
+                        length=THIRTY,
+                        rate=Money.dollars(60),
+                        flight=Flight.build(date(2025, 8, 18), date(2025, 8, 29), "M-F", 5),
+                    ),
+                )
+            )
         )
         # 8/25 is in broadcast September, not August, even though August has 31 days.
-        a_day(uow, grid, date(2025, 8, 25), [(7, 2, "25-1044", 1, "C1204")],
-              [ran("2025-08-25", "07:10:00")])
+        a_day(
+            uow,
+            grid,
+            date(2025, 8, 25),
+            [(7, 2, "25-1044", 1, "C1204")],
+            [ran("2025-08-25", "07:10:00")],
+        )
         august = run_month(uow, AUGUST, RAISED)
         assert august.count == 0
         september = run_month(uow, BroadcastMonth(2025, 9), date(2025, 9, 29))
@@ -301,8 +326,13 @@ def test_a_spot_for_a_line_that_is_no_longer_on_the_order_is_refused(engine):
     grid = a_grid("KWLO")
     with unit_of_work(engine) as uow:
         uow.orders.save(an_order())
-        a_day(uow, grid, MONDAY, [(7, 2, "25-1044", 9, "C1204")],
-              [ran("2025-08-04", "07:10:00", reference="25-1044-9")])
+        a_day(
+            uow,
+            grid,
+            MONDAY,
+            [(7, 2, "25-1044", 9, "C1204")],
+            [ran("2025-08-04", "07:10:00", reference="25-1044-9")],
+        )
         with pytest.raises(InvoicingError, match="aired a line 9 that is not on the order"):
             build_invoice(uow, "25-1044", AUGUST, RAISED)
 

@@ -31,8 +31,14 @@ def client(tmp_path, cluster, accounts, cards, programming):
         # Production dubs the copy. Traffic names a cart that has been dubbed.
         for cart, isci in (("C1204", "HYVE2501"), ("C1205", "HYVE2502")):
             uow.accounts.file_cut(
-                Cut(cart=cart, isci=isci, advertiser="HYVEE", length=THIRTY,
-                    actual=Duration(300), first_air=MONDAY)
+                Cut(
+                    cart=cart,
+                    isci=isci,
+                    advertiser="HYVEE",
+                    length=THIRTY,
+                    actual=Duration(300),
+                    first_air=MONDAY,
+                )
             )
         uow.commit()
     return TestClient(create_app(settings, engine))
@@ -227,9 +233,7 @@ def test_a_span_of_days_lists_what_state_each_one_is_in(client):
     an_order(client)
     client.post("/logs/build/2025-08-04")
     client.post("/logs/KWLO/2025-08-04/approve", json={"who": "T. Ronan"})
-    body = client.get(
-        "/logs/KWLO", params={"first": "2025-08-04", "last": "2025-08-10"}
-    ).json()
+    body = client.get("/logs/KWLO", params={"first": "2025-08-04", "last": "2025-08-10"}).json()
     assert len(body) == 7
     assert body[0] == {
         "day": "2025-08-04",
@@ -241,8 +245,6 @@ def test_a_span_of_days_lists_what_state_each_one_is_in(client):
 
 
 def test_a_span_that_runs_backwards_is_refused(client):
-    response = client.get(
-        "/logs/KWLO", params={"first": "2025-08-10", "last": "2025-08-04"}
-    )
+    response = client.get("/logs/KWLO", params={"first": "2025-08-10", "last": "2025-08-04"})
     assert response.status_code == 404
     assert "runs backwards" in response.json()["message"]

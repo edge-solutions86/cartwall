@@ -1,4 +1,3 @@
-
 import pytest
 
 from cartwall.airtime import Duration
@@ -33,8 +32,12 @@ def board(grid):
 def put(board, hour, number, cart="C1204", line=1, length=THIRTY, code="HYVEE"):
     board.avail(hour, number).add(
         Placement(
-            order="25-1044", line=line, advertiser=code, length=length,
-            grade=FIXED, cart=cart,
+            order="25-1044",
+            line=line,
+            advertiser=code,
+            length=length,
+            grade=FIXED,
+            cart=cart,
         )
     )
 
@@ -51,10 +54,12 @@ def test_a_clean_day_matches_everything_by_reference(grid, board):
     put(board, 7, 2, line=1)
     put(board, 9, 4, line=2, cart="C1205")
     log = DayLog.build(grid, board)
-    rows = parse(a_file(
-        ran("07:10:00", reference="25-1044-1"),
-        ran("09:38:00", cart="C1205", reference="25-1044-2"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:00", reference="25-1044-1"),
+            ran("09:38:00", cart="C1205", reference="25-1044-2"),
+        )
+    )
     result = reconcile(log, rows)
     assert result.scheduled == 2
     assert result.aired == 2
@@ -118,10 +123,12 @@ def test_a_spot_with_no_as_run_line_at_all_is_missed(grid, board):
 
 def test_an_as_run_line_nobody_logged_is_extra(grid, board):
     put(board, 7, 2)
-    rows = parse(a_file(
-        ran("07:10:00"),
-        ran("15:22:00", cart="C9999", reference="25-9999-1"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:00"),
+            ran("15:22:00", cart="C9999", reference="25-9999-1"),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert len(result.extra) == 1
     assert result.extra[0].aired.cart == "C9999"
@@ -140,10 +147,12 @@ def test_a_line_with_no_reference_matches_on_cart_and_time(grid, board):
 def test_two_runs_of_one_cart_match_the_nearer_scheduled_spot_each(grid, board):
     put(board, 7, 2, line=1)
     put(board, 15, 2, line=2)
-    rows = parse(a_file(
-        ran("15:10:05", reference=""),
-        ran("07:10:05", reference=""),
-    ))
+    rows = parse(
+        a_file(
+            ran("15:10:05", reference=""),
+            ran("07:10:05", reference=""),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert len(result.matched) == 2
     by_line = {match.scheduled.line: match for match in result.matched}
@@ -174,10 +183,12 @@ def test_the_window_can_be_widened_when_a_day_ran_badly_late(grid, board):
 def test_the_reference_pass_wins_over_the_cart_pass(grid, board):
     put(board, 7, 2, line=1)
     put(board, 7, 3, line=2)
-    rows = parse(a_file(
-        ran("07:22:05", reference="25-1044-1"),
-        ran("07:10:05", reference=""),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:22:05", reference="25-1044-1"),
+            ran("07:10:05", reference=""),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     by_line = {match.scheduled.line: match for match in result.matched}
     assert by_line[1].by_reference
@@ -232,10 +243,12 @@ def test_the_missed_are_counted_by_the_reason_the_automation_gave(grid, board):
     put(board, 7, 2, line=1, cart="C1201")
     put(board, 9, 2, line=2, cart="C1202")
     put(board, 11, 2, line=3, cart="C1203")
-    rows = parse(a_file(
-        ran("07:10:00", cart="C1201", status="skip", reference="25-1044-1"),
-        ran("09:10:00", cart="C1202", status="error", reference="25-1044-2"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:00", cart="C1201", status="skip", reference="25-1044-1"),
+            ran("09:10:00", cart="C1202", status="error", reference="25-1044-2"),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert missed_by_status(result) == {"error": 1, "no as-run line": 1, "skipped": 1}
 
@@ -243,10 +256,12 @@ def test_the_missed_are_counted_by_the_reason_the_automation_gave(grid, board):
 def test_the_worst_drift_of_a_day_is_reported_for_the_morning_meeting(grid, board):
     put(board, 7, 2, line=1, cart="C1201")
     put(board, 9, 2, line=2, cart="C1202")
-    rows = parse(a_file(
-        ran("07:10:04", cart="C1201", reference="25-1044-1"),
-        ran("09:22:00", cart="C1202", reference="25-1044-2"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:04", cart="C1201", reference="25-1044-1"),
+            ran("09:22:00", cart="C1202", reference="25-1044-2"),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert worst_drift(result) == Duration.of_seconds(12 * 60)
 
@@ -254,10 +269,12 @@ def test_the_worst_drift_of_a_day_is_reported_for_the_morning_meeting(grid, boar
 def test_everything_comes_back_in_air_order(grid, board):
     for hour, line in ((15, 3), (7, 1), (9, 2)):
         put(board, hour, 2, line=line, cart=f"C120{line}")
-    rows = parse(a_file(
-        ran("15:10:00", cart="C1203", reference="25-1044-3"),
-        ran("07:10:00", cart="C1201", reference="25-1044-1"),
-    ))
+    rows = parse(
+        a_file(
+            ran("15:10:00", cart="C1203", reference="25-1044-3"),
+            ran("07:10:00", cart="C1201", reference="25-1044-1"),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert [match.aired.at.hour for match in result.matched] == [7, 15]
     assert [miss.scheduled.at.hour for miss in result.missed] == [9]
@@ -266,10 +283,12 @@ def test_everything_comes_back_in_air_order(grid, board):
 def test_the_result_finds_every_run_of_one_line(grid, board):
     put(board, 7, 2, line=1)
     put(board, 9, 2, line=1)
-    rows = parse(a_file(
-        ran("07:10:00", reference="25-1044-1"),
-        ran("09:10:00", reference="25-1044-1"),
-    ))
+    rows = parse(
+        a_file(
+            ran("07:10:00", reference="25-1044-1"),
+            ran("09:10:00", reference="25-1044-1"),
+        )
+    )
     result = reconcile(DayLog.build(grid, board), rows)
     assert len(result.for_line("25-1044", 1)) == 2
     assert result.for_line("25-1044", 9) == []

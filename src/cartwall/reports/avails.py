@@ -101,9 +101,7 @@ def by_daypart(board: DayBoard, book: RuleBook) -> list[Row]:
             sold += avail.used_units
         if not units:
             continue
-        rows.append(
-            Row(daypart.code, units, sold, _rate_for(book, daypart.code) * (units - sold))
-        )
+        rows.append(Row(daypart.code, units, sold, _rate_for(book, daypart.code) * (units - sold)))
     return rows
 
 

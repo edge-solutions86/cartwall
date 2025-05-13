@@ -130,9 +130,7 @@ def test_a_daypart_runs_out_of_room_long_before_it_runs_out_of_units(lays, accou
 def test_nothing_lands_where_the_half_hour_rule_would_be_broken(lays, accounts):
     result = place_week(lays, accounts, an_ask(accounts), 20)
     for day in WEEKDAYS:
-        spots = sorted(
-            (spot for spot in result.landed if spot.day == day), key=lambda s: s.hour
-        )
+        spots = sorted((spot for spot in result.landed if spot.day == day), key=lambda s: s.hour)
         hours = [spot.hour for spot in spots]
         assert len(set(hours)) == len(hours), "two in one hour breaks the half hour rule"
 

@@ -140,8 +140,9 @@ def test_closing_an_account_takes_its_codes_and_its_copy_with_it(session):
     advertiser = an_advertiser()
     advertiser.categories = [CategoryRow(path="GROCERY", root="GROCERY")]
     advertiser.cuts = [
-        CutRow(cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(299),
-               first_air=JANUARY)
+        CutRow(
+            cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(299), first_air=JANUARY
+        )
     ]
     session.add(advertiser)
     session.commit()
@@ -154,8 +155,9 @@ def test_closing_an_account_takes_its_codes_and_its_copy_with_it(session):
 def test_a_cut_keeps_its_sold_length_and_its_running_time_apart(session):
     advertiser = an_advertiser()
     advertiser.cuts = [
-        CutRow(cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(301),
-               first_air=JANUARY)
+        CutRow(
+            cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(301), first_air=JANUARY
+        )
     ]
     session.add(advertiser)
     session.commit()
@@ -170,8 +172,15 @@ def test_a_cut_keeps_its_sold_length_and_its_running_time_apart(session):
 def test_a_killed_cut_keeps_the_date_it_stopped(session):
     advertiser = an_advertiser()
     advertiser.cuts = [
-        CutRow(cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(300),
-               first_air=JANUARY, last_air=date(2025, 2, 28), killed=True)
+        CutRow(
+            cart="C1204",
+            isci="HYVE2501",
+            length=THIRTY,
+            actual=Duration(300),
+            first_air=JANUARY,
+            last_air=date(2025, 2, 28),
+            killed=True,
+        )
     ]
     session.add(advertiser)
     session.commit()
@@ -183,10 +192,12 @@ def test_a_killed_cut_keeps_the_date_it_stopped(session):
 def test_the_copy_comes_back_in_cart_order(session):
     advertiser = an_advertiser()
     advertiser.cuts = [
-        CutRow(cart="C1300", isci="HYVE2503", length=THIRTY, actual=Duration(300),
-               first_air=JANUARY),
-        CutRow(cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(300),
-               first_air=JANUARY),
+        CutRow(
+            cart="C1300", isci="HYVE2503", length=THIRTY, actual=Duration(300), first_air=JANUARY
+        ),
+        CutRow(
+            cart="C1204", isci="HYVE2501", length=THIRTY, actual=Duration(300), first_air=JANUARY
+        ),
     ]
     session.add(advertiser)
     session.commit()
@@ -196,8 +207,14 @@ def test_the_copy_comes_back_in_cart_order(session):
 
 def a_station(session):
     session.add(
-        StationRow(call="KWLO", band=Band.FM, frequency=Decimal("99.1"),
-                   city_of_license="Waterloo", service=Service.MUSIC, market="WCF")
+        StationRow(
+            call="KWLO",
+            band=Band.FM,
+            frequency=Decimal("99.1"),
+            city_of_license="Waterloo",
+            service=Service.MUSIC,
+            market="WCF",
+        )
     )
 
 

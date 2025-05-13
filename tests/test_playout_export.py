@@ -36,15 +36,26 @@ def board(grid):
 def put(board, hour, number, code="HYVEE", length=THIRTY, cart="C1204", line=1):
     board.avail(hour, number).add(
         Placement(
-            order="25-1044", line=line, advertiser=code, length=length,
-            grade=FIXED, cart=cart,
+            order="25-1044",
+            line=line,
+            advertiser=code,
+            length=length,
+            grade=FIXED,
+            cart=cart,
         )
     )
 
 
 def test_the_columns_are_the_interface():
     assert [name for name, _ in WIDTHS] == [
-        "hour", "start", "kind", "tenths", "cart", "order", "line", "advertiser",
+        "hour",
+        "start",
+        "kind",
+        "tenths",
+        "cart",
+        "order",
+        "line",
+        "advertiser",
     ]
     assert sum(width for _, width in WIDTHS) + len(WIDTHS) - 1 == LINE_WIDTH
 
@@ -173,7 +184,9 @@ def test_an_element_the_format_has_no_code_for_is_refused(grid, board):
     log = DayLog.build(grid, board)
     log.lines.append(
         LogLine(
-            at=log.lines[0].at, break_number=9, element=Element.UNSOLD,
+            at=log.lines[0].at,
+            break_number=9,
+            element=Element.UNSOLD,
             length=Duration(0),
         )
     )

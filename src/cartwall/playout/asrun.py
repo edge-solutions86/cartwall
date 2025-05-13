@@ -138,9 +138,7 @@ def parse_line(row: dict[str, str]) -> AsRun:
     # reach, so a missing column and an absent key are the same thing here.
     missing = [name for name in HEADER if row.get(name) is None]
     if missing:
-        raise AsRunError(
-            f"the as-run line is missing {', '.join(missing)}", missing=missing
-        )
+        raise AsRunError(f"the as-run line is missing {', '.join(missing)}", missing=missing)
     try:
         day = date.fromisoformat(row["date"].strip())
     except ValueError:
@@ -194,6 +192,4 @@ def by_status(rows: list[AsRun]) -> dict[Played, int]:
 
 def stamp(day: date, at: AirTime) -> datetime:
     """A wall clock moment, for anything that wants to sort across days."""
-    return datetime(
-        day.year, day.month, day.day, at.hour, at.minute, at.second
-    )
+    return datetime(day.year, day.month, day.day, at.hour, at.minute, at.second)

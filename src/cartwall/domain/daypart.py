@@ -152,9 +152,7 @@ class Daypart:
     @property
     def cells(self) -> frozenset[tuple[Weekday, int]]:
         return frozenset(
-            (day, hour)
-            for day in self.days
-            for hour in range(self.first_hour, self.last_hour)
+            (day, hour) for day in self.days for hour in range(self.first_hour, self.last_hour)
         )
 
     def holds(self, day: Weekday, at: AirTime) -> bool:
@@ -219,9 +217,7 @@ class DaypartGrid:
 
     def gaps(self) -> frozenset[tuple[Weekday, int]]:
         """Hours of the week no daypart sells."""
-        everything = {
-            (day, hour) for day in Weekday for hour in range(HOURS_IN_DAY)
-        }
+        everything = {(day, hour) for day in Weekday for hour in range(HOURS_IN_DAY)}
         return frozenset(everything - self.covered)
 
     def is_whole_week(self) -> bool:

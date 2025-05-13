@@ -44,7 +44,11 @@ def an_order(number="25-1044"):
         salesperson="DHOLM",
         lines=(
             Line(
-                number=1, station="KWLO", daypart="AMD", grade=FIXED, length=THIRTY,
+                number=1,
+                station="KWLO",
+                daypart="AMD",
+                grade=FIXED,
+                length=THIRTY,
                 rate=Money.dollars(60),
                 flight=Flight.build(MONDAY, date(2025, 8, 29), "M-F", 12),
             ),

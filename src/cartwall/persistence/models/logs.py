@@ -77,7 +77,10 @@ class SpotRow(Base):
     __tablename__ = "air_spot"
     __table_args__ = (
         UniqueConstraint(
-            "log_id", "hour", "break_number", "position",
+            "log_id",
+            "hour",
+            "break_number",
+            "position",
             name="uq_air_spot_log_id_hour_break_number_position",
         ),
     )
@@ -104,9 +107,7 @@ class SpotRow(Base):
     aired: Mapped[bool] = mapped_column(Boolean, default=False)
     aired_at: Mapped[AirTime | None] = mapped_column(ClockTenths, nullable=True)
     aired_length: Mapped[Duration | None] = mapped_column(Tenths, nullable=True)
-    aired_status: Mapped[Played] = mapped_column(
-        EnumValue(Played), default=Played.UNKNOWN
-    )
+    aired_status: Mapped[Played] = mapped_column(EnumValue(Played), default=Played.UNKNOWN)
 
     log: Mapped[LogRow] = relationship(back_populates="spots")
 

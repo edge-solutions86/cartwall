@@ -225,9 +225,7 @@ def _air_time(text: str) -> AirTime:
     return AirTime.parse(text)
 
 
-def raise_one(
-    uow: UnitOfWork, order: str, month: BroadcastMonth, raised_on: date
-) -> InvoiceRow:
+def raise_one(uow: UnitOfWork, order: str, month: BroadcastMonth, raised_on: date) -> InvoiceRow:
     """Number and store the invoice for one order. Refuses a second one."""
     if existing(uow, order, month) is not None:
         raise AlreadyInvoiced(
@@ -237,9 +235,7 @@ def raise_one(
         )
     invoice = build_invoice(uow, order, month, raised_on)
     if invoice.is_empty:
-        raise InvoicingError(
-            f"{order} aired nothing in {month}", order=order, month=str(month)
-        )
+        raise InvoicingError(f"{order} aired nothing in {month}", order=order, month=str(month))
     invoice.number = Numbering(uow.session).next(SERIES, raised_on.year)
     return store(uow, invoice)
 

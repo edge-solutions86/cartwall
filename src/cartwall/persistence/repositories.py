@@ -188,9 +188,7 @@ class RateCardRepository:
             .where(RateCardRow.station == station, RateCardRow.effective == effective)
         ).first()
         if row is None:
-            raise LookupFailure(
-                f"{station} has no card effective {effective}", station=station
-            )
+            raise LookupFailure(f"{station} has no card effective {effective}", station=station)
         return mappers.rate_card_from(row)
 
     def book(self) -> RateCardBook:

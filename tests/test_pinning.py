@@ -129,8 +129,7 @@ def test_a_pinned_spot_still_counts_for_separation(lay, accounts):
     hours = sorted(spot.hour for spot in result.landed)
     # Nothing else of this advertiser inside half an hour of 7:50.
     assert 8 not in hours or all(
-        avail.hour != 8 or avail.number > 2
-        for avail in lay.board.find("25-1044", 2)
+        avail.hour != 8 or avail.number > 2 for avail in lay.board.find("25-1044", 2)
     )
 
 

@@ -32,19 +32,36 @@ def cluster() -> Cluster:
             Station("KWLO", Band.FM, Decimal("99.1"), "Waterloo", Service.MUSIC),
             Station("KOEL-FM", Band.FM, Decimal("92.3"), "Oelwein", Service.MUSIC),
             Station(
-                "KCRR", Band.FM, Decimal("97.7"), "Grundy Center", Service.SPORTS,
+                "KCRR",
+                Band.FM,
+                Decimal("97.7"),
+                "Grundy Center",
+                Service.SPORTS,
                 commercial_load=18,
             ),
             Station(
-                "KXEL", Band.AM, Decimal("1540"), "Waterloo", Service.NEWS_TALK,
-                daytimer=True, commercial_load=18,
-            ),
-            Station(
-                "KCNZ", Band.AM, Decimal("1250"), "Cedar Falls", Service.FARM,
+                "KXEL",
+                Band.AM,
+                Decimal("1540"),
+                "Waterloo",
+                Service.NEWS_TALK,
+                daytimer=True,
                 commercial_load=18,
             ),
             Station(
-                "KWLO-LP", Band.TRANSLATOR, Decimal("103.5"), "Cedar Falls", Service.MUSIC,
+                "KCNZ",
+                Band.AM,
+                Decimal("1250"),
+                "Cedar Falls",
+                Service.FARM,
+                commercial_load=18,
+            ),
+            Station(
+                "KWLO-LP",
+                Band.TRANSLATOR,
+                Decimal("103.5"),
+                "Cedar Falls",
+                Service.MUSIC,
                 carries="KWLO",
             ),
         ),
@@ -61,9 +78,7 @@ def accounts() -> AccountBook:
     # book is written: two dealers of any make separate from each other.
     book.add_advertiser(Advertiser.build("HYVEE", "Hy-Vee", "GROCERY,FUEL.GAS"))
     book.add_advertiser(Advertiser.build("CASEY", "Caseys", "FUEL,GROCERY.CONV"))
-    book.add_advertiser(
-        Advertiser.build("DEALF", "Dahl Ford", "AUTO,BRAND.FORD", agency="MOP")
-    )
+    book.add_advertiser(Advertiser.build("DEALF", "Dahl Ford", "AUTO,BRAND.FORD", agency="MOP"))
     book.add_advertiser(
         Advertiser.build("DEALC", "Community Chevrolet", "AUTO,BRAND.CHEV", agency="MOP")
     )
@@ -72,10 +87,6 @@ def accounts() -> AccountBook:
     book.add_advertiser(Advertiser.build("VGM", "VGM Group", "SERVICES.HOME"))
     book.add_advertiser(Advertiser.build("BLACK", "Black Hawk Bank", "FINANCE.BANK"))
     return book
-
-
-
-
 
 
 @pytest.fixture
@@ -90,8 +101,6 @@ def programming() -> dict[str, ClockGrid]:
     grids["KCNZ"].assign(Assignment.build("farm block", "M-Sa", 5, 7, "FRM"))
     grids["KCRR"].assign(Assignment.preempt("friday football", "F", 19, 23))
     return grids
-
-
 
 
 @pytest.fixture

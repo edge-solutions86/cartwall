@@ -191,9 +191,7 @@ def clean_openings(
     neighbours: list[Candidate] | None = None,
 ) -> list[Opening]:
     return [
-        opening
-        for opening in openings(board, book, accounts, ask, neighbours)
-        if opening.is_clean
+        opening for opening in openings(board, book, accounts, ask, neighbours) if opening.is_clean
     ]
 
 

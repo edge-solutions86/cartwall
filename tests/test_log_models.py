@@ -29,8 +29,14 @@ def session(tmp_path):
     factory = session_factory(engine)
     with factory() as session:
         session.add(
-            StationRow(call="KWLO", band=Band.FM, frequency=Decimal("99.1"),
-                       city_of_license="Waterloo", service=Service.MUSIC, market="WCF")
+            StationRow(
+                call="KWLO",
+                band=Band.FM,
+                frequency=Decimal("99.1"),
+                city_of_license="Waterloo",
+                service=Service.MUSIC,
+                market="WCF",
+            )
         )
         session.add(AdvertiserRow(code="HYVEE", name="Hy-Vee"))
         session.add(AdvertiserRow(code="SLUMB", name="Slumberland"))
@@ -162,9 +168,17 @@ def test_deleting_a_log_takes_its_spots_with_it(session):
 def test_a_bump_records_what_came_off_and_who_took_it(session):
     session.add(
         BumpRow(
-            station="KWLO", day=MONDAY, hour=7, break_number=2,
-            order_number="25-0100", line=3, advertiser="SLUMB",
-            length=THIRTY, grade=IMMEDIATE, by_order="25-9000", by_line=1,
+            station="KWLO",
+            day=MONDAY,
+            hour=7,
+            break_number=2,
+            order_number="25-0100",
+            line=3,
+            advertiser="SLUMB",
+            length=THIRTY,
+            grade=IMMEDIATE,
+            by_order="25-9000",
+            by_line=1,
         )
     )
     session.commit()
@@ -179,9 +193,17 @@ def test_a_bump_is_not_a_flag_on_the_spot_it_took_off(session):
     a_log(session, spots=[a_spot()])
     session.add(
         BumpRow(
-            station="KWLO", day=MONDAY, hour=7, break_number=2,
-            order_number="25-0100", line=3, advertiser="SLUMB",
-            length=THIRTY, grade=IMMEDIATE, by_order="25-1044", by_line=1,
+            station="KWLO",
+            day=MONDAY,
+            hour=7,
+            break_number=2,
+            order_number="25-0100",
+            line=3,
+            advertiser="SLUMB",
+            length=THIRTY,
+            grade=IMMEDIATE,
+            by_order="25-1044",
+            by_line=1,
         )
     )
     session.commit()
@@ -192,9 +214,17 @@ def test_a_bump_is_not_a_flag_on_the_spot_it_took_off(session):
 
 def test_a_bump_can_be_marked_made_good_without_touching_the_log(session):
     bump = BumpRow(
-        station="KWLO", day=MONDAY, hour=7, break_number=2,
-        order_number="25-0100", line=3, advertiser="SLUMB",
-        length=THIRTY, grade=IMMEDIATE, by_order="25-9000", by_line=1,
+        station="KWLO",
+        day=MONDAY,
+        hour=7,
+        break_number=2,
+        order_number="25-0100",
+        line=3,
+        advertiser="SLUMB",
+        length=THIRTY,
+        grade=IMMEDIATE,
+        by_order="25-9000",
+        by_line=1,
     )
     session.add(bump)
     session.commit()
@@ -208,13 +238,19 @@ def test_one_line_can_be_bumped_more_than_once(session):
     for day in (MONDAY, date(2025, 8, 5)):
         session.add(
             BumpRow(
-                station="KWLO", day=day, hour=7, break_number=2,
-                order_number="25-0100", line=3, advertiser="SLUMB",
-                length=THIRTY, grade=IMMEDIATE, by_order="25-9000", by_line=1,
+                station="KWLO",
+                day=day,
+                hour=7,
+                break_number=2,
+                order_number="25-0100",
+                line=3,
+                advertiser="SLUMB",
+                length=THIRTY,
+                grade=IMMEDIATE,
+                by_order="25-9000",
+                by_line=1,
             )
         )
     session.commit()
-    owed = session.scalars(
-        select(BumpRow).where(BumpRow.order_number == "25-0100")
-    ).all()
+    owed = session.scalars(select(BumpRow).where(BumpRow.order_number == "25-0100")).all()
     assert len(owed) == 2
