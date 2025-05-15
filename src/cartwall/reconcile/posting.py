@@ -26,6 +26,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..errors import ConflictError
+from ..logging import event, warn
 from ..logs.approval import LogState
 from ..persistence.models.logs import LogRow, SpotRow
 from ..playout.asrun import Played
@@ -114,6 +115,17 @@ def post(session: Session, result: Reconciliation, force: bool = False) -> Posti
 
     report.unmatched = len(result.extra)
     session.flush()
+    event(
+        "asrun.posted",
+        station=result.station,
+        day=result.day,
+        aired=report.aired,
+        missed=report.missed,
+        moved=report.moved,
+        unlogged=report.unmatched,
+    )
+    if report.missed:
+        warn("asrun.missed", station=result.station, day=result.day, spots=report.missed)
     return report
 
 

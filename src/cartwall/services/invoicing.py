@@ -33,6 +33,7 @@ from ..airtime import AirTime
 from ..billing.invoice import Detail, Invoice, summarise
 from ..broadcast import BroadcastMonth
 from ..errors import ConflictError, ValidationError
+from ..logging import event, warn
 from ..logs.approval import LogState
 from ..persistence.models.billing import (
     InvoiceDetailRow,
@@ -243,9 +244,11 @@ def raise_one(uow: UnitOfWork, order: str, month: BroadcastMonth, raised_on: dat
 def run_month(uow: UnitOfWork, month: BroadcastMonth, raised_on: date) -> RunReport:
     """Raise every invoice the month has earned."""
     report = RunReport(month)
+    event("invoice.run.started", month=str(month), raised=str(raised_on))
     for order in orders_with_air(uow, month):
         if existing(uow, order, month) is not None:
             report.skipped.append((order, "already invoiced"))
+            warn("invoice.skipped", order=order, month=str(month), why="already invoiced")
             continue
         invoice = build_invoice(uow, order, month, raised_on)
         if invoice.is_empty:
@@ -254,4 +257,19 @@ def run_month(uow: UnitOfWork, month: BroadcastMonth, raised_on: date) -> RunRep
         invoice.number = Numbering(uow.session).next(SERIES, raised_on.year)
         store(uow, invoice)
         report.raised.append(invoice.number)
+        event(
+            "invoice.raised",
+            invoice=invoice.number,
+            order=order,
+            payer=invoice.payer,
+            spots=invoice.spots,
+            gross=str(invoice.gross),
+            net=str(invoice.net),
+        )
+    event(
+        "invoice.run.finished",
+        month=str(month),
+        raised=report.count,
+        skipped=len(report.skipped),
+    )
     return report

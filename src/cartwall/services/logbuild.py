@@ -27,6 +27,7 @@ from datetime import date
 from ..broadcast import BroadcastWeek
 from ..domain.rulebook import House
 from ..errors import ValidationError
+from ..logging import event, warn
 from ..logs.approval import LogState
 from ..persistence.logstore import LogRepository
 from ..persistence.unitofwork import UnitOfWork
@@ -137,9 +138,27 @@ def build_week(uow: UnitOfWork, house: House, week: BroadcastWeek) -> BuildRepor
         state = _state_of(logs, call, day)
         if state is not None and state.is_out:
             report.skipped.append((call, day, state.value))
+            warn("build.skipped", station=call, day=day, state=state.value)
             continue
         logs.save(boards.board(call, day))
         report.written.append((call, day))
+
+    event(
+        "build.finished",
+        week=str(week),
+        orders=len(report.orders),
+        placed=report.placed,
+        wanted=report.wanted,
+        written=len(report.written),
+        skipped=len(report.skipped),
+    )
+    for shortfall in report.shortfalls():
+        warn(
+            "build.short",
+            order=shortfall.order.number,
+            placed=shortfall.placed,
+            wanted=shortfall.wanted,
+        )
     return report
 
 
