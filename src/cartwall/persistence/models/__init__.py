@@ -8,6 +8,9 @@ from .accounts import (  # noqa: F401
     QuoteRow,
     RateCardRow,
 )
+from .audit import (  # noqa: F401
+    AuditRow,
+)
 from .billing import (  # noqa: F401
     InvoiceDetailRow,
     InvoiceRow,
