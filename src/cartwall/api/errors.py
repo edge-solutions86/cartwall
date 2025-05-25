@@ -24,9 +24,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from ..errors import CartwallError, ConflictError, LookupFailure, ValidationError
+from .security import NotAllowed, NotAuthenticated
 
-#: Which HTTP status each root maps to. Nothing else decides.
+#: Which HTTP status each root maps to. Nothing else decides. The order is the
+#: order they are tried in, so the narrow ones come before the broad ones.
 STATUS = {
+    NotAuthenticated: 401,
+    NotAllowed: 403,
     ValidationError: 422,
     LookupFailure: 404,
     ConflictError: 409,

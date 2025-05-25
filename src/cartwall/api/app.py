@@ -21,12 +21,17 @@ from ..config import Settings
 from ..persistence.unitofwork import open_database
 from . import errors
 from .routers import logs, orders
+from .security import KeyRing
 
 TITLE = "cartwall"
 DESCRIPTION = "Traffic, continuity and billing for a radio group"
 
 
-def create_app(settings: Settings | None = None, engine: Engine | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    engine: Engine | None = None,
+    keys: KeyRing | None = None,
+) -> FastAPI:
     """Build an application. Hand it an engine in tests, a settings elsewhere."""
     settings = settings or Settings.from_environment()
     app = FastAPI(
@@ -38,8 +43,11 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     )
     app.state.settings = settings
     app.state.engine = engine if engine is not None else open_database(settings)
+    app.state.keys = keys if keys is not None else KeyRing.from_environment()
     errors.install(app)
 
+    # Health and readiness are outside the gate. A monitor that has to hold a
+    # key is a monitor somebody eventually turns off.
     @app.get("/health", tags=["service"])
     def health() -> dict[str, str]:
         """Is the process up. Does not touch the database, on purpose."""
