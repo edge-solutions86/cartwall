@@ -5,12 +5,19 @@ from starlette.testclient import TestClient
 
 from cartwall.airtime import Duration
 from cartwall.api.app import create_app
+from cartwall.api.security import HEADER, KeyRing
 from cartwall.config import Settings
 from cartwall.domain.daypart import standard_grid
 from cartwall.domain.spot import THIRTY, Cut
 from cartwall.persistence.base import create_all, engine_for
 from cartwall.persistence.unitofwork import unit_of_work
 from support import CARD_DATE, MONDAY
+
+# These two files test what the routes do, not who may call them. Every request
+# carries a manager key so the gate is never the thing under test. The gate
+# itself is tested in test_api_roles.py.
+MANAGER = "mstone:manager:managerkey"
+KEYS = {HEADER: "managerkey"}
 
 FRIDAY = date(2025, 8, 8)
 SIGNED = "2025-08-01T16:30:00"
@@ -41,7 +48,8 @@ def client(tmp_path, cluster, accounts, cards, programming):
                 )
             )
         uow.commit()
-    return TestClient(create_app(settings, engine))
+    app = create_app(settings, engine, KeyRing.parse(MANAGER))
+    return TestClient(app, headers=KEYS)
 
 
 def a_line(number=1, **kw):

@@ -2,10 +2,17 @@ import pytest
 from starlette.testclient import TestClient
 
 from cartwall.api.app import create_app
+from cartwall.api.security import HEADER, KeyRing
 from cartwall.config import Settings
 from cartwall.domain.account import Advertiser, Credit
 from cartwall.persistence.base import create_all, engine_for, session_factory
 from cartwall.persistence.repositories import AccountRepository, StationRepository
+
+# These two files test what the routes do, not who may call them. Every request
+# carries a manager key so the gate is never the thing under test. The gate
+# itself is tested in test_api_roles.py.
+MANAGER = "mstone:manager:managerkey"
+KEYS = {HEADER: "managerkey"}
 
 
 @pytest.fixture
@@ -18,7 +25,8 @@ def client(tmp_path, cluster, accounts):
         StationRepository(session).save_cluster(cluster)
         AccountRepository(session).save_book(accounts)
         session.commit()
-    return TestClient(create_app(settings, engine))
+    app = create_app(settings, engine, KeyRing.parse(MANAGER))
+    return TestClient(app, headers=KEYS)
 
 
 def a_line(number=1, **kw):

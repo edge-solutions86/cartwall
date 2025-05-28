@@ -23,9 +23,11 @@ from ...logs.approval import LogState, problems, warnings
 from ...logs.day import DayLog
 from ...persistence.logstore import LogRepository
 from ...persistence.unitofwork import UnitOfWork
+from ...services.audit import try_record
 from ...services.logbuild import build_week
 from ..deps import Work
 from ..schemas import Shape
+from ..security import Caller, Manager, Reader, Traffic
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -117,6 +119,7 @@ def read_log(
     day: date,
     spots: bool = Query(False, description="Spots only, without the fixed elements"),
     uow: UnitOfWork = Work,
+    caller: Caller = Reader,
 ) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
@@ -156,7 +159,7 @@ def _problem_out(problem) -> ProblemOut:
 
 
 @router.get("/{station}/{day}/ready", response_model=ReadyOut)
-def check_log(station: str, day: date, uow: UnitOfWork = Work) -> ReadyOut:
+def check_log(station: str, day: date, uow: UnitOfWork = Work, caller: Caller = Reader) -> ReadyOut:
     """What is wrong with this log, and what is merely worth knowing."""
     house = _house(uow)
     logs = LogRepository(uow.session)
@@ -172,10 +175,20 @@ def check_log(station: str, day: date, uow: UnitOfWork = Work) -> ReadyOut:
 
 
 @router.post("/build/{week_of}", response_model=BuildOut)
-def build(week_of: date, uow: UnitOfWork = Work) -> BuildOut:
+def build(week_of: date, uow: UnitOfWork = Work, caller: Caller = Traffic) -> BuildOut:
     """Rebuild the broadcast week containing ``week_of`` across the cluster."""
     week = BroadcastWeek.of(week_of)
     report = build_week(uow, _house(uow), week)
+    try_record(
+        uow.session,
+        "log.built",
+        caller.name,
+        "week",
+        str(week),
+        placed=report.placed,
+        wanted=report.wanted,
+        written=len(report.written),
+    )
     return BuildOut(
         week=str(week),
         placed=report.placed,
@@ -187,7 +200,13 @@ def build(week_of: date, uow: UnitOfWork = Work) -> BuildOut:
 
 
 @router.post("/{station}/{day}/approve", response_model=LogOut)
-def approve(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work) -> LogOut:
+def approve(
+    station: str,
+    day: date,
+    body: SignIn = Body(),
+    uow: UnitOfWork = Work,
+    caller: Caller = Traffic,
+) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
     grid = house.programming[house.logging_call(station)]
@@ -205,11 +224,25 @@ def approve(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Wo
     if not body.who:
         raise ConflictError("a log has to be approved by somebody")
     logs.approve(grid.station, day, body.who, body.at or datetime.now())
-    return read_log(grid.station, day, False, uow)
+    try_record(
+        uow.session,
+        "log.approved",
+        caller.name,
+        "log",
+        f"{grid.station} {day}",
+        signed_by=body.who,
+    )
+    return read_log(grid.station, day, False, uow, caller)
 
 
 @router.post("/{station}/{day}/release", response_model=LogOut)
-def release(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Work) -> LogOut:
+def release(
+    station: str,
+    day: date,
+    body: SignIn = Body(),
+    uow: UnitOfWork = Work,
+    caller: Caller = Traffic,
+) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
     grid = house.programming[house.logging_call(station)]
@@ -219,12 +252,20 @@ def release(station: str, day: date, body: SignIn = Body(), uow: UnitOfWork = Wo
             station=grid.station,
             day=str(day),
         )
-    logs.release(grid.station, day, body.at or datetime.now())
-    return read_log(grid.station, day, False, uow)
+    status = logs.release(grid.station, day, body.at or datetime.now())
+    try_record(
+        uow.session,
+        "log.released",
+        caller.name,
+        "log",
+        f"{grid.station} {day}",
+        revision=status.revision,
+    )
+    return read_log(grid.station, day, False, uow, caller)
 
 
 @router.post("/{station}/{day}/revise", response_model=LogOut)
-def revise(station: str, day: date, uow: UnitOfWork = Work) -> LogOut:
+def revise(station: str, day: date, uow: UnitOfWork = Work, caller: Caller = Manager) -> LogOut:
     house = _house(uow)
     logs = LogRepository(uow.session)
     grid = house.programming[house.logging_call(station)]
@@ -234,8 +275,16 @@ def revise(station: str, day: date, uow: UnitOfWork = Work) -> LogOut:
             f"{grid.station} {day} is {status.state.value} and does not need a revision",
             station=grid.station,
         )
-    logs.revise(grid.station, day)
-    return read_log(grid.station, day, False, uow)
+    revised = logs.revise(grid.station, day)
+    try_record(
+        uow.session,
+        "log.revised",
+        caller.name,
+        "log",
+        f"{grid.station} {day}",
+        revision=revised.revision,
+    )
+    return read_log(grid.station, day, False, uow, caller)
 
 
 @router.get("/{station}", response_model=list[dict])
@@ -244,6 +293,7 @@ def list_logs(
     first: date = Query(description="First day of the span"),
     last: date = Query(description="Last day of the span"),
     uow: UnitOfWork = Work,
+    caller: Caller = Reader,
 ) -> list[dict]:
     if last < first:
         raise LookupFailure("the span runs backwards", first=str(first), last=str(last))

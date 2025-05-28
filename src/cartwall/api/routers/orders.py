@@ -20,29 +20,43 @@ from fastapi import APIRouter, Query, Response, status
 from ...domain.order import OrderError
 from ...errors import ConflictError
 from ...persistence.unitofwork import UnitOfWork
+from ...services.audit import try_record
 from ..deps import Work
 from ..schemas import OrderIn, OrderOut
+from ..security import Caller, Reader, Seller
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
 @router.post("", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
-def write_order(body: OrderIn, uow: UnitOfWork = Work) -> OrderOut:
+def write_order(body: OrderIn, uow: UnitOfWork = Work, caller: Caller = Seller) -> OrderOut:
     """Write a new order. The number comes from the caller and must be free."""
     if uow.orders.exists(body.number):
         raise ConflictError(f"order {body.number} is already on file", order=body.number)
     order = body.to_domain()
     uow.orders.save(order)
+    try_record(
+        uow.session,
+        "order.written",
+        caller.name,
+        "order",
+        order.number,
+        advertiser=order.advertiser,
+        lines=len(order),
+        value=str(order.value),
+    )
     return OrderOut.of(order)
 
 
 @router.get("/{number}", response_model=OrderOut)
-def read_order(number: str, uow: UnitOfWork = Work) -> OrderOut:
+def read_order(number: str, uow: UnitOfWork = Work, caller: Caller = Reader) -> OrderOut:
     return OrderOut.of(uow.orders.get(number))
 
 
 @router.put("/{number}", response_model=OrderOut)
-def rewrite_order(number: str, body: OrderIn, uow: UnitOfWork = Work) -> OrderOut:
+def rewrite_order(
+    number: str, body: OrderIn, uow: UnitOfWork = Work, caller: Caller = Seller
+) -> OrderOut:
     """Replace an order that has not been confirmed yet."""
     if number != body.number:
         raise OrderError(
@@ -58,11 +72,20 @@ def rewrite_order(number: str, body: OrderIn, uow: UnitOfWork = Work) -> OrderOu
         )
     order = body.to_domain()
     uow.orders.save(order)
+    try_record(
+        uow.session,
+        "order.rewritten",
+        caller.name,
+        "order",
+        order.number,
+        lines=len(order),
+        value=str(order.value),
+    )
     return OrderOut.of(order)
 
 
 @router.post("/{number}/confirm", response_model=OrderOut)
-def confirm_order(number: str, uow: UnitOfWork = Work) -> OrderOut:
+def confirm_order(number: str, uow: UnitOfWork = Work, caller: Caller = Seller) -> OrderOut:
     """Make an order schedulable. Refused if the advertiser is on hold."""
     order = uow.orders.get(number)
     if not uow.accounts.book().may_schedule(order.advertiser):
@@ -73,13 +96,23 @@ def confirm_order(number: str, uow: UnitOfWork = Work) -> OrderOut:
         )
     confirmed = order.confirmed()
     uow.orders.save(confirmed)
+    try_record(
+        uow.session,
+        "order.confirmed",
+        caller.name,
+        "order",
+        number,
+        advertiser=order.advertiser,
+        value=str(order.value),
+    )
     return OrderOut.of(confirmed)
 
 
 @router.post("/{number}/cancel", response_model=OrderOut)
-def cancel_order(number: str, uow: UnitOfWork = Work) -> OrderOut:
+def cancel_order(number: str, uow: UnitOfWork = Work, caller: Caller = Seller) -> OrderOut:
     cancelled = uow.orders.get(number).cancelled()
     uow.orders.save(cancelled)
+    try_record(uow.session, "order.cancelled", caller.name, "order", number)
     return OrderOut.of(cancelled)
 
 
@@ -87,6 +120,7 @@ def cancel_order(number: str, uow: UnitOfWork = Work) -> OrderOut:
 def list_orders(
     advertiser: str = Query(description="Account code the orders belong to"),
     uow: UnitOfWork = Work,
+    caller: Caller = Reader,
 ) -> list[OrderOut]:
     return [OrderOut.of(order) for order in uow.orders.for_advertiser(advertiser)]
 
@@ -99,7 +133,7 @@ def list_orders(
     # framework is concerned, and a 204 is not allowed to have one at all.
     response_model=None,
 )
-def delete_order(number: str, uow: UnitOfWork = Work) -> None:
+def delete_order(number: str, uow: UnitOfWork = Work, caller: Caller = Seller) -> None:
     """Take an order off the file. Confirmed orders are cancelled, not deleted."""
     order = uow.orders.get(number)
     if order.status.may_schedule:
@@ -108,3 +142,4 @@ def delete_order(number: str, uow: UnitOfWork = Work) -> None:
             order=number,
         )
     uow.orders.delete(number)
+    try_record(uow.session, "order.deleted", caller.name, "order", number)
