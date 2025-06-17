@@ -16,6 +16,9 @@ from .billing import (  # noqa: F401
     InvoiceRow,
     InvoiceSummaryRow,
 )
+from .credits import (  # noqa: F401
+    CreditRow,
+)
 from .logs import (  # noqa: F401
     BumpRow,
     LogRow,
