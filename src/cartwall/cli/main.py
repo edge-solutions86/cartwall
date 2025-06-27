@@ -29,6 +29,8 @@ from ..logging import quiet
 from ..persistence.base import create_all, drop_all
 from ..persistence.unitofwork import open_database, unit_of_work
 
+# Importing the command modules is what registers them on the group.
+
 #: What the shell gets back. Anything else is a bug.
 OK = 0
 REFUSED = 1
@@ -55,7 +57,22 @@ class House:
 pass_house = click.make_pass_decorator(House)
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+class HouseGroup(click.Group):
+    """A group that turns the package's refusals into the house error shape.
+
+    This has to live on the group rather than in ``run``, because the test
+    runner and any other embedder invoke the group directly and would
+    otherwise see a bare traceback where an operator sees a sentence.
+    """
+
+    def invoke(self, context: click.Context):
+        try:
+            return super().invoke(context)
+        except CartwallError as trouble:
+            raise click.ClickException(f"{trouble.code}: {trouble.message}") from None
+
+
+@click.group(cls=HouseGroup, context_settings={"help_option_names": ["-h", "--help"]})
 @click.option("--database", "-d", default=None, help="Database URL. Beats the environment.")
 @click.version_option(__version__, "--version", "-V")
 @click.pass_context
@@ -142,8 +159,9 @@ def run(argv: list[str] | None = None) -> int:
         except click.UsageError as trouble:
             click.echo(str(trouble), err=True)
             return MISUSED
-        except CartwallError as trouble:
-            click.echo(f"{trouble.code}: {trouble.message}", err=True)
+        except click.ClickException as trouble:
+            # Everything the group turned into one, which is every refusal.
+            click.echo(str(trouble), err=True)
             return REFUSED
         except SystemExit as leaving:
             return int(leaving.code or OK)
@@ -152,3 +170,11 @@ def run(argv: list[str] | None = None) -> int:
 
 def main() -> None:  # pragma: no cover - the console script
     sys.exit(run())
+
+
+def load_commands() -> None:
+    """Register every command module on the group. Called at import time."""
+    from . import logs  # noqa: F401  registering is the whole point
+
+
+load_commands()

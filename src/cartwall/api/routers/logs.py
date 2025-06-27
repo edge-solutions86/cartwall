@@ -17,13 +17,13 @@ from datetime import date, datetime
 from fastapi import APIRouter, Body, Query
 
 from ...broadcast import BroadcastWeek
-from ...domain.rulebook import House
 from ...errors import ConflictError, LookupFailure
 from ...logs.approval import LogState, problems, warnings
 from ...logs.day import DayLog
 from ...persistence.logstore import LogRepository
 from ...persistence.unitofwork import UnitOfWork
 from ...services.audit import try_record
+from ...services.house import grid_for, house_from
 from ...services.logbuild import build_week
 from ..deps import Work
 from ..schemas import Shape
@@ -83,34 +83,9 @@ class SignIn(Shape):
     at: datetime | None = None
 
 
-def _house(uow: UnitOfWork) -> House:
-    """Rebuild the house from what is on file. Cheap, and never stale."""
-    cluster = uow.stations.cluster()
-    calls = [station.call for station in cluster.logged]
-    return House(
-        cluster=cluster,
-        accounts=uow.accounts.book(),
-        cards=uow.cards.book(),
-        dayparts={call: uow.stations.dayparts(call) for call in calls},
-        programming={call: _grid(uow, call) for call in calls},
-        separation={},
-    )
-
-
-def _grid(uow: UnitOfWork, call: str):
-    from sqlalchemy import select
-
-    from ...domain.programming import ClockGrid
-    from ...persistence.models.reference import AssignmentRow
-
-    effective = uow.session.scalars(
-        select(AssignmentRow.effective)
-        .where(AssignmentRow.station == call)
-        .order_by(AssignmentRow.effective.desc())
-    ).first()
-    if effective is None:
-        return ClockGrid(call, date(2000, 1, 1))
-    return uow.stations.grid(call, effective)
+def _problem_out(problem) -> ProblemOut:
+    # Problem is a slots dataclass, so there is no __dict__ to splat.
+    return ProblemOut(code=problem.code, where=problem.where, detail=problem.detail)
 
 
 @router.get("/{station}/{day}", response_model=LogOut)
@@ -121,9 +96,8 @@ def read_log(
     uow: UnitOfWork = Work,
     caller: Caller = Reader,
 ) -> LogOut:
-    house = _house(uow)
     logs = LogRepository(uow.session)
-    grid = house.programming[house.logging_call(station)]
+    grid = grid_for(uow, station, day)
     board = logs.board(grid, day)
     status = logs.status(grid.station, day)
     built = DayLog.build(grid, board)
@@ -153,17 +127,11 @@ def read_log(
     )
 
 
-def _problem_out(problem) -> ProblemOut:
-    # Problem is a slots dataclass, so there is no __dict__ to splat.
-    return ProblemOut(code=problem.code, where=problem.where, detail=problem.detail)
-
-
 @router.get("/{station}/{day}/ready", response_model=ReadyOut)
 def check_log(station: str, day: date, uow: UnitOfWork = Work, caller: Caller = Reader) -> ReadyOut:
     """What is wrong with this log, and what is merely worth knowing."""
-    house = _house(uow)
     logs = LogRepository(uow.session)
-    grid = house.programming[house.logging_call(station)]
+    grid = grid_for(uow, station, day)
     built = DayLog.build(grid, logs.board(grid, day))
     return ReadyOut(
         station=grid.station,
@@ -178,7 +146,7 @@ def check_log(station: str, day: date, uow: UnitOfWork = Work, caller: Caller = 
 def build(week_of: date, uow: UnitOfWork = Work, caller: Caller = Traffic) -> BuildOut:
     """Rebuild the broadcast week containing ``week_of`` across the cluster."""
     week = BroadcastWeek.of(week_of)
-    report = build_week(uow, _house(uow), week)
+    report = build_week(uow, house_from(uow), week)
     try_record(
         uow.session,
         "log.built",
@@ -207,9 +175,8 @@ def approve(
     uow: UnitOfWork = Work,
     caller: Caller = Traffic,
 ) -> LogOut:
-    house = _house(uow)
     logs = LogRepository(uow.session)
-    grid = house.programming[house.logging_call(station)]
+    grid = grid_for(uow, station, day)
     if logs.status(grid.station, day).state is not LogState.DRAFT:
         raise ConflictError(
             f"{grid.station} {day} is not a draft", station=grid.station, day=str(day)
@@ -243,9 +210,8 @@ def release(
     uow: UnitOfWork = Work,
     caller: Caller = Traffic,
 ) -> LogOut:
-    house = _house(uow)
     logs = LogRepository(uow.session)
-    grid = house.programming[house.logging_call(station)]
+    grid = grid_for(uow, station, day)
     if logs.status(grid.station, day).state is not LogState.APPROVED:
         raise ConflictError(
             f"{grid.station} {day} has not been approved",
@@ -266,9 +232,8 @@ def release(
 
 @router.post("/{station}/{day}/revise", response_model=LogOut)
 def revise(station: str, day: date, uow: UnitOfWork = Work, caller: Caller = Manager) -> LogOut:
-    house = _house(uow)
     logs = LogRepository(uow.session)
-    grid = house.programming[house.logging_call(station)]
+    grid = grid_for(uow, station, day)
     status = logs.status(grid.station, day)
     if not status.state.is_out:
         raise ConflictError(
