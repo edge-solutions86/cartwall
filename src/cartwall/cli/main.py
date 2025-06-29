@@ -174,7 +174,7 @@ def main() -> None:  # pragma: no cover - the console script
 
 def load_commands() -> None:
     """Register every command module on the group. Called at import time."""
-    from . import logs  # noqa: F401  registering is the whole point
+    from . import billing, logs  # noqa: F401  registering is the whole point
 
 
 load_commands()
