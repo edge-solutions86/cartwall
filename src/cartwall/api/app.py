@@ -20,7 +20,7 @@ from .. import __version__
 from ..config import Settings
 from ..persistence.unitofwork import open_database
 from . import errors
-from .routers import logs, orders
+from .routers import avails, logs, orders
 from .security import KeyRing
 
 TITLE = "cartwall"
@@ -62,4 +62,5 @@ def create_app(
 
     app.include_router(orders.router)
     app.include_router(logs.router)
+    app.include_router(avails.router)
     return app
