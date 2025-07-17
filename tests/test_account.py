@@ -9,6 +9,7 @@ from cartwall.domain.account import (
     Agency,
     Category,
     Credit,
+    NotOnFile,
 )
 
 
@@ -119,11 +120,15 @@ def test_the_book_refuses_a_pointer_at_something_that_is_not_there(book):
         book.add_advertiser(Advertiser.build("NEW", "New", parent="NOPE"))
 
 
-def test_looking_up_something_that_is_not_there(book):
-    with pytest.raises(AccountError, match="advertiser NOPE is not on file"):
+def test_looking_up_something_that_is_not_there_is_a_miss_not_bad_input(book):
+    with pytest.raises(NotOnFile, match="advertiser NOPE is not on file") as caught:
         book.advertiser("NOPE")
-    with pytest.raises(AccountError, match="agency NOPE is not on file"):
+    assert caught.value.code == "no_such_account"
+    assert caught.value.context["code"] == "NOPE"
+    with pytest.raises(NotOnFile, match="agency NOPE is not on file"):
         book.agency("NOPE")
+    # It is a lookup failure, so the http layer answers 404 rather than 422.
+    assert not isinstance(caught.value, AccountError)
 
 
 def test_direct_business_pays_no_commission(book):

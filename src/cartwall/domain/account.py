@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 
-from ..errors import ValidationError
+from ..errors import LookupFailure, ValidationError
 from ..money import AGENCY_RATE
 
 CODE = re.compile(r"^[A-Z][A-Z0-9]{1,7}$")
@@ -38,6 +38,17 @@ class AccountError(ValidationError):
     """An account that cannot be set up as described."""
 
     code = "bad_account"
+
+
+class NotOnFile(LookupFailure):
+    """Asked for an account nobody has opened.
+
+    Its own class rather than an ``AccountError``, because a caller asking for
+    an account that is not there has not sent bad input: it has asked about
+    something that does not exist, and over HTTP those are 404 and 422.
+    """
+
+    code = "no_such_account"
 
 
 class Credit(Enum):
@@ -193,13 +204,13 @@ class AccountBook:
         try:
             return self.advertisers[code]
         except KeyError:
-            raise AccountError(f"advertiser {code} is not on file") from None
+            raise NotOnFile(f"advertiser {code} is not on file", code=code) from None
 
     def agency(self, code: str) -> Agency:
         try:
             return self.agencies[code]
         except KeyError:
-            raise AccountError(f"agency {code} is not on file") from None
+            raise NotOnFile(f"agency {code} is not on file", code=code) from None
 
     def commission_rate(self, code: str) -> Decimal:
         """What comes off this advertiser's gross. Direct business pays none."""
