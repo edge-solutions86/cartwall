@@ -19,13 +19,14 @@ from cartwall.api.security import (
 )
 from cartwall.config import Settings
 from cartwall.persistence.base import create_all, engine_for
+from support import MEMORY
 
 RING = "dholm:seller:sellerkey;tronan:traffic:traffickey;mstone:manager:managerkey"
 
 
 @pytest.fixture
-def app(tmp_path):
-    settings = Settings(database_url=f"sqlite+pysqlite:///{tmp_path / 'sec.sqlite3'}")
+def app():
+    settings = Settings(database_url=MEMORY)
     engine = engine_for(settings.database_url)
     create_all(engine)
     app = create_app(settings, engine, KeyRing.parse(RING + ";eyre:reader:readerkey"))
@@ -183,8 +184,8 @@ def test_a_manager_can_do_the_lot(client):
         assert client.post(path, headers=as_key("managerkey")).status_code == 200
 
 
-def test_an_application_with_no_keys_lets_nobody_in(tmp_path):
-    settings = Settings(database_url=f"sqlite+pysqlite:///{tmp_path / 'none.sqlite3'}")
+def test_an_application_with_no_keys_lets_nobody_in():
+    settings = Settings(database_url=MEMORY)
     engine = engine_for(settings.database_url)
     create_all(engine)
     app = create_app(settings, engine, KeyRing.parse(""))

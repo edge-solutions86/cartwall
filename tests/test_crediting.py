@@ -23,6 +23,7 @@ from cartwall.services.crediting import (
     standing,
 )
 from cartwall.services.numbering import Numbering
+from support import MEMORY
 
 FIXED = ClassOfTime.FIXED
 MONDAY = date(2025, 8, 4)
@@ -30,8 +31,8 @@ RAISED = date(2025, 8, 25)
 
 
 @pytest.fixture
-def engine(tmp_path, cluster, accounts):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'credit.sqlite3'}")
+def engine(cluster, accounts):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with unit_of_work(engine) as uow:
         uow.stations.save_cluster(cluster)

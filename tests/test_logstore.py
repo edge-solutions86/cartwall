@@ -18,7 +18,7 @@ from cartwall.persistence.logstore import (
 from cartwall.persistence.repositories import AccountRepository, StationRepository
 from cartwall.scheduling.bumping import Bumped, BumpQueue
 from cartwall.scheduling.inventory import DayBoard, Placement
-from support import MONDAY, a_grid
+from support import MEMORY, MONDAY, a_grid
 
 FIXED = ClassOfTime.FIXED
 IMMEDIATE = ClassOfTime.IMMEDIATE
@@ -29,8 +29,8 @@ TUESDAY = date(2025, 8, 5)
 
 
 @pytest.fixture
-def session(tmp_path, cluster, accounts):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'logstore.sqlite3'}")
+def session(cluster, accounts):
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

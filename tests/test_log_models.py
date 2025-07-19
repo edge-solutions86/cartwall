@@ -14,6 +14,7 @@ from cartwall.persistence.base import create_all, drop_all, engine_for, session_
 from cartwall.persistence.models.accounts import AdvertiserRow
 from cartwall.persistence.models.logs import BumpRow, LogRow, SpotRow
 from cartwall.persistence.models.reference import StationRow
+from support import MEMORY
 
 FIXED = ClassOfTime.FIXED
 IMMEDIATE = ClassOfTime.IMMEDIATE
@@ -23,8 +24,8 @@ SIGNED = datetime(2025, 8, 1, 16, 30)
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'logs.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

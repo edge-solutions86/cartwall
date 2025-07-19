@@ -9,7 +9,7 @@ from cartwall.domain.daypart import standard_grid
 from cartwall.domain.spot import THIRTY, Cut
 from cartwall.persistence.base import create_all, engine_for
 from cartwall.persistence.unitofwork import unit_of_work
-from support import CARD_DATE, MONDAY
+from support import CARD_DATE, MEMORY, MONDAY
 
 RING = "eyre:reader:readerkey;tronan:traffic:traffickey"
 READER = {HEADER: "readerkey"}
@@ -17,8 +17,8 @@ TRAFFIC = {HEADER: "traffickey"}
 
 
 @pytest.fixture
-def client(tmp_path, cluster, accounts, cards, programming):
-    settings = Settings(database_url=f"sqlite+pysqlite:///{tmp_path / 'avails.sqlite3'}")
+def client(cluster, accounts, cards, programming):
+    settings = Settings(database_url=MEMORY)
     engine = engine_for(settings.database_url)
     create_all(engine)
     with unit_of_work(engine) as uow:

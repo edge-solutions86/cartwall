@@ -9,11 +9,12 @@ from cartwall.services.numbering import (
     SeriesExhausted,
     parse_number,
 )
+from support import MEMORY
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'numbering.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

@@ -13,7 +13,7 @@ from cartwall.playout.asrun import Played, parse
 from cartwall.reconcile.matcher import reconcile
 from cartwall.reconcile.posting import NotAired, aired_spots, missed_spots, post
 from cartwall.scheduling.inventory import DayBoard, Placement
-from support import MONDAY, a_grid
+from support import MEMORY, MONDAY, a_grid
 
 FIXED = ClassOfTime.FIXED
 HEADER = "date,time,cart,title,length,status,reference"
@@ -22,8 +22,8 @@ TUESDAY = date(2025, 8, 5)
 
 
 @pytest.fixture
-def session(tmp_path, cluster, accounts):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'post.sqlite3'}")
+def session(cluster, accounts):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with session_factory(engine)() as session:
         StationRepository(session).save_cluster(cluster)

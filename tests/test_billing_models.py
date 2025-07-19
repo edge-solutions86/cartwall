@@ -21,14 +21,14 @@ from cartwall.persistence.repositories import (
     OrderRepository,
     StationRepository,
 )
-from support import MONDAY
+from support import MEMORY, MONDAY
 
 FIXED = ClassOfTime.FIXED
 
 
 @pytest.fixture
-def session(tmp_path, cluster, accounts):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'billing.sqlite3'}")
+def session(cluster, accounts):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with session_factory(engine)() as session:
         StationRepository(session).save_cluster(cluster)

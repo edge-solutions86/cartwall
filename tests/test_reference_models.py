@@ -28,13 +28,14 @@ from cartwall.persistence.models.reference import (
     DaypartRow,
     StationRow,
 )
+from support import MEMORY
 
 JANUARY = date(2025, 1, 1)
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'reference.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

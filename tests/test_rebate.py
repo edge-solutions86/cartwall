@@ -19,7 +19,7 @@ from cartwall.reconcile.posting import post
 from cartwall.scheduling.inventory import DayBoard, Placement
 from cartwall.services.invoicing import run_month
 from cartwall.services.rebate import RebateError, charge_book, owed_for
-from support import CARD_DATE, a_grid
+from support import CARD_DATE, MEMORY, a_grid
 
 IMMEDIATE = ClassOfTime.IMMEDIATE
 FIXED = ClassOfTime.FIXED
@@ -36,8 +36,8 @@ AIR_DAY = date(2025, 8, 4)
 
 
 @pytest.fixture
-def engine(tmp_path, cluster, accounts, cards, programming):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'rebate.sqlite3'}")
+def engine(cluster, accounts, cards, programming):
+    engine = engine_for(MEMORY)
     create_all(engine)
     accounts.add_advertiser(Advertiser.build("MERRICK", "Merrick for Iowa", "POLITICAL"))
     with unit_of_work(engine) as uow:

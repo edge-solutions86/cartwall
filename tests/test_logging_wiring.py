@@ -26,7 +26,7 @@ from cartwall.reconcile.posting import post
 from cartwall.scheduling.inventory import DayBoard, Placement
 from cartwall.services.invoicing import run_month
 from cartwall.services.logbuild import build_week
-from support import CARD_DATE, MONDAY, a_grid
+from support import CARD_DATE, MEMORY, MONDAY, a_grid
 
 FIXED = ClassOfTime.FIXED
 WEEK = BroadcastWeek(MONDAY)
@@ -48,8 +48,8 @@ def events(stream) -> list[str]:
 
 
 @pytest.fixture
-def engine(tmp_path, cluster, accounts, cards, programming):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'wiring.sqlite3'}")
+def engine(cluster, accounts, cards, programming):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with unit_of_work(engine) as uow:
         uow.stations.save_cluster(cluster)

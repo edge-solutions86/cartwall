@@ -15,6 +15,7 @@ from cartwall.services.audit import (
     record,
     try_record,
 )
+from support import MEMORY
 
 MONDAY = date(2025, 8, 4)
 NINE = datetime(2025, 8, 4, 9, 0, 0)
@@ -22,8 +23,8 @@ TEN = datetime(2025, 8, 4, 10, 0, 0)
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'audit.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     with session_factory(engine)() as session:
         yield session

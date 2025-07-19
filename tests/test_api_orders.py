@@ -7,6 +7,7 @@ from cartwall.config import Settings
 from cartwall.domain.account import Advertiser, Credit
 from cartwall.persistence.base import create_all, engine_for, session_factory
 from cartwall.persistence.repositories import AccountRepository, StationRepository
+from support import MEMORY
 
 # These two files test what the routes do, not who may call them. Every request
 # carries a manager key so the gate is never the thing under test. The gate
@@ -16,8 +17,8 @@ KEYS = {HEADER: "managerkey"}
 
 
 @pytest.fixture
-def client(tmp_path, cluster, accounts):
-    settings = Settings(database_url=f"sqlite+pysqlite:///{tmp_path / 'orders.sqlite3'}")
+def client(cluster, accounts):
+    settings = Settings(database_url=MEMORY)
     engine = engine_for(settings.database_url)
     create_all(engine)
     accounts.add_advertiser(Advertiser.build("SLOW", "Slow Pay", credit=Credit.HOLD))

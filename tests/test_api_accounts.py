@@ -7,6 +7,7 @@ from cartwall.config import Settings
 from cartwall.persistence.base import create_all, engine_for
 from cartwall.persistence.unitofwork import unit_of_work
 from cartwall.services.audit import about
+from support import MEMORY
 
 RING = (
     "eyre:reader:readerkey;dholm:seller:sellerkey;"
@@ -19,8 +20,8 @@ MANAGER = {HEADER: "managerkey"}
 
 
 @pytest.fixture
-def engine(tmp_path, cluster, accounts):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'acct.sqlite3'}")
+def engine(cluster, accounts):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with unit_of_work(engine) as uow:
         uow.stations.save_cluster(cluster)
@@ -30,8 +31,8 @@ def engine(tmp_path, cluster, accounts):
 
 
 @pytest.fixture
-def client(engine, tmp_path):
-    settings = Settings(database_url=f"sqlite+pysqlite:///{tmp_path / 'acct.sqlite3'}")
+def client(engine):
+    settings = Settings(database_url=MEMORY)
     return TestClient(create_app(settings, engine, KeyRing.parse(RING)))
 
 

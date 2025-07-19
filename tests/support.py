@@ -78,3 +78,10 @@ def a_card(code: str, station: str, drive: int, midday: int) -> RateCard:
             ("ROS", IMMEDIATE, 12),
         ],
     )
+
+
+#: Test databases live in memory. They are built and thrown away inside one
+#: test, nothing else ever opens them by url, and going through the filesystem
+#: for that costs more than everything the test actually does. The two suites
+#: that do open a database twice by url, the cli and the migrations, keep files.
+MEMORY = "sqlite+pysqlite:///:memory:"

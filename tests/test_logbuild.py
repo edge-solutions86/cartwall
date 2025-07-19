@@ -15,7 +15,7 @@ from cartwall.scheduling.inventory import DayBoard
 from cartwall.scheduling.lay import Lay
 from cartwall.scheduling.pinning import pin
 from cartwall.services.logbuild import PinnedBoards, build_week, restore_pins
-from support import CARD_DATE, MONDAY
+from support import CARD_DATE, MEMORY, MONDAY
 
 FIXED = ClassOfTime.FIXED
 WEEK = BroadcastWeek(MONDAY)
@@ -24,8 +24,8 @@ SIGNED = datetime(2025, 8, 1, 16, 30)
 
 
 @pytest.fixture
-def engine(tmp_path, cluster, accounts, cards, programming):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'build.sqlite3'}")
+def engine(cluster, accounts, cards, programming):
+    engine = engine_for(MEMORY)
     create_all(engine)
     with unit_of_work(engine) as uow:
         uow.stations.save_cluster(cluster)

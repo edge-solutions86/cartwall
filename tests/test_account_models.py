@@ -27,6 +27,7 @@ from cartwall.persistence.models.accounts import (
     RateCardRow,
 )
 from cartwall.persistence.models.reference import StationRow
+from support import MEMORY
 
 FIXED = ClassOfTime.FIXED
 NOTICE = ClassOfTime.NOTICE
@@ -35,8 +36,8 @@ JANUARY = date(2025, 1, 1)
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'accounts.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

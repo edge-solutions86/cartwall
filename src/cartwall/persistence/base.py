@@ -28,6 +28,7 @@ from datetime import date
 from sqlalchemy import Integer, MetaData, String, TypeDecorator, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from ..airtime import AirTime, Duration
 from ..domain.spot import SpotLength
@@ -139,14 +140,34 @@ class EnumValue(TypeDecorator):
         return self.enum_type(value)
 
 
+def is_memory(url: str) -> bool:
+    return url.startswith("sqlite") and ":memory:" in url
+
+
 def engine_for(url: str, echo: bool = False) -> Engine:
     """A connected engine with SQLite told to behave itself.
 
     SQLite does not enforce foreign keys unless it is asked to, once per
     connection. A test suite that skips this passes against constraints that
     the server would have refused.
+
+    An in memory database needs two things beyond that, and without either it
+    behaves in a way that looks like a bug in whatever is using it. Every
+    connection to ``:memory:`` gets its **own empty database**, so the pool has
+    to hand out one connection and keep it; and anything that answers a request
+    on another thread, which the HTTP test client does, has to be allowed to
+    use it.
     """
-    engine = create_engine(url, echo=echo, future=True)
+    if is_memory(url):
+        engine = create_engine(
+            url,
+            echo=echo,
+            future=True,
+            poolclass=StaticPool,
+            connect_args={"check_same_thread": False},
+        )
+    else:
+        engine = create_engine(url, echo=echo, future=True)
     if engine.dialect.name == "sqlite":
         from sqlalchemy import event
 

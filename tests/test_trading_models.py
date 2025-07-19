@@ -16,6 +16,7 @@ from cartwall.persistence.base import create_all, drop_all, engine_for, session_
 from cartwall.persistence.models.accounts import AdvertiserRow, AgencyRow, CutRow
 from cartwall.persistence.models.reference import StationRow
 from cartwall.persistence.models.trading import LineRow, OrderRow, RotationRow
+from support import MEMORY
 
 FIXED = ClassOfTime.FIXED
 NOTICE = ClassOfTime.NOTICE
@@ -25,8 +26,8 @@ FRIDAY = date(2025, 8, 29)
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'trading.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:

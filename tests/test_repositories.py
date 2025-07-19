@@ -17,14 +17,14 @@ from cartwall.persistence.repositories import (
     RateCardRepository,
     StationRepository,
 )
-from support import CARD_DATE, MONDAY, a_card, a_grid
+from support import CARD_DATE, MEMORY, MONDAY, a_card, a_grid
 
 FIXED = ClassOfTime.FIXED
 
 
 @pytest.fixture
-def session(tmp_path):
-    engine = engine_for(f"sqlite+pysqlite:///{tmp_path / 'repo.sqlite3'}")
+def session():
+    engine = engine_for(MEMORY)
     create_all(engine)
     factory = session_factory(engine)
     with factory() as session:
