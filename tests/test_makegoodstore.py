@@ -285,3 +285,47 @@ def test_open_offers_can_be_read_for_one_order(engine):
     with unit_of_work(engine) as uow:
         assert len(uow.makegoods.open_offers("25-1044")) == 1
         assert uow.makegoods.open_offers("25-9999") == []
+
+
+def test_four_identical_debts_stay_four(engine):
+    """A line short four spots in a week is owed four, not one."""
+    four = [a_debt(cause=Cause.NEVER_SCHEDULED) for _ in range(4)]
+    with unit_of_work(engine) as uow:
+        assert uow.makegoods.raise_all(four) == 4
+        uow.commit()
+    with unit_of_work(engine) as uow:
+        assert uow.makegoods.count() == 4
+        assert uow.makegoods.ledger().owed_by_line() == {("25-1044", 1): 4}
+
+
+def test_gathering_the_same_four_again_changes_nothing(engine):
+    four = [a_debt(cause=Cause.NEVER_SCHEDULED) for _ in range(4)]
+    with unit_of_work(engine) as uow:
+        uow.makegoods.raise_all(four)
+        assert uow.makegoods.raise_all(four) == 0
+        uow.commit()
+    with unit_of_work(engine) as uow:
+        assert uow.makegoods.count() == 4
+
+
+def test_a_shorter_gather_leaves_the_rest_on_file(engine):
+    """Four owed last night and two tonight does not cancel the other two."""
+    with unit_of_work(engine) as uow:
+        uow.makegoods.raise_all([a_debt(cause=Cause.NEVER_SCHEDULED) for _ in range(4)])
+        assert uow.makegoods.raise_all([a_debt(cause=Cause.NEVER_SCHEDULED)] * 2) == 0
+        uow.commit()
+    with unit_of_work(engine) as uow:
+        assert uow.makegoods.count() == 4
+
+
+def test_each_of_the_four_is_offered_against_on_its_own(engine):
+    with unit_of_work(engine) as uow:
+        uow.makegoods.raise_all([a_debt(cause=Cause.NEVER_SCHEDULED) for _ in range(4)])
+        debt = a_debt(cause=Cause.NEVER_SCHEDULED)
+        first = uow.makegoods.propose(debt, FRIDAY, "AMD", Money.parse("60.00"), sequence=1)
+        second = uow.makegoods.propose(debt, LATER, "AMD", Money.parse("60.00"), sequence=2)
+        uow.commit()
+    assert first.debt_id != second.debt_id
+    with unit_of_work(engine) as uow:
+        assert len(uow.makegoods.open_offers()) == 2
+        assert len(uow.makegoods.ledger().still_owed()) == 4

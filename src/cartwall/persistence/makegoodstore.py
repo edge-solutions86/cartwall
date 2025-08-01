@@ -19,6 +19,13 @@ gone by, and that one is a bulk operation in the domain too.
 hand more often than anybody admits, usually because the first as-run file was
 the wrong day. A second raise of a debt already on file returns the row that is
 there, so re-posting a night does not double what a client is owed.
+
+That is why :meth:`MakegoodRepository.raise_all` exists and why callers should
+use it rather than looping over :meth:`raise_debt`. A gather can hand back
+several debts that are identical in every column, because a line short four
+spots in a week is four debts with nothing to tell them apart. ``raise_all``
+numbers them as it walks, so four stay four, and gathering the same span again
+numbers them the same way and changes nothing.
 """
 
 from __future__ import annotations
@@ -73,9 +80,13 @@ class MakegoodRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def raise_debt(self, debt: Debt) -> DebtRow:
-        """Put a debt on file. Raising one that is already there is a no-op."""
-        found = self._find(debt)
+    def raise_debt(self, debt: Debt, sequence: int = 1) -> DebtRow:
+        """Put a debt on file. Raising one that is already there is a no-op.
+
+        ``sequence`` tells identical debts apart. Leave it alone unless you are
+        raising several at once, and then prefer :meth:`raise_all`.
+        """
+        found = self._find(debt, sequence)
         if found is not None:
             return found
         row = DebtRow(
@@ -89,21 +100,31 @@ class MakegoodRepository:
             rate=debt.rate,
             day=debt.day,
             cause=debt.cause,
+            sequence=sequence,
         )
         self.session.add(row)
         self.session.flush()
         return row
 
     def raise_all(self, debts: list[Debt]) -> int:
-        """The nightly run's entry point. Answers how many were new."""
+        """The nightly run's entry point. Answers how many were new.
+
+        Identical debts are numbered in the order they arrive, so a line owed
+        four spots gets four rows rather than one.
+        """
         before = self.count()
+        seen: dict[tuple[str, int, date, str], int] = {}
         for debt in debts:
-            self.raise_debt(debt)
+            key = (debt.order, debt.line, debt.day, debt.cause.value)
+            seen[key] = seen.get(key, 0) + 1
+            self.raise_debt(debt, seen[key])
         return self.count() - before
 
-    def propose(self, debt: Debt, day: date, daypart: str, rate: Money) -> OfferRow:
-        """Offer one spot back against a debt that is on file."""
-        found = self._find(debt)
+    def propose(
+        self, debt: Debt, day: date, daypart: str, rate: Money, sequence: int = 1
+    ) -> OfferRow:
+        """Offer one spot back against one of the spots owed on a debt."""
+        found = self._find(debt, sequence)
         if found is None:
             raise NotOwed(
                 f"nothing is owed on {debt.order}-{debt.line} for {debt.day}",
@@ -205,7 +226,7 @@ class MakegoodRepository:
             self.session.scalars(query.order_by(DebtRow.day, DebtRow.order_number, DebtRow.line))
         )
 
-    def _find(self, debt: Debt) -> DebtRow | None:
+    def _find(self, debt: Debt, sequence: int = 1) -> DebtRow | None:
         return self.session.scalars(
             select(DebtRow)
             .options(selectinload(DebtRow.offers))
@@ -214,5 +235,6 @@ class MakegoodRepository:
                 DebtRow.line == debt.line,
                 DebtRow.day == debt.day,
                 DebtRow.cause == debt.cause,
+                DebtRow.sequence == sequence,
             )
         ).first()
