@@ -24,6 +24,10 @@ from .logs import (  # noqa: F401
     LogRow,
     SpotRow,
 )
+from .makegoods import (  # noqa: F401
+    DebtRow,
+    OfferRow,
+)
 from .office import (  # noqa: F401
     CounterRow,
 )

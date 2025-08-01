@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 from ..config import Settings
 from ..errors import ValidationError
 from .base import create_all, engine_for, session_factory
+from .makegoodstore import MakegoodRepository
 from .repositories import (
     AccountRepository,
     OrderRepository,
@@ -49,6 +50,7 @@ class UnitOfWork:
         self.accounts = AccountRepository(session)
         self.cards = RateCardRepository(session)
         self.orders = OrderRepository(session)
+        self.makegoods = MakegoodRepository(session)
         self._closed = False
         self._committed = False
 
