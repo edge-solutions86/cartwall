@@ -22,6 +22,12 @@ Offers are offers. Nothing airs because a makegood was proposed. The client
 accepts it, and only then is the spot placed and the debt closed. A makegood
 that was offered and never accepted is still owed at the end of the month, and
 that is the number the credit run reads.
+
+**Nothing in here writes anything down.** Debts are raised and offers are made
+and settled through the repository, which is the only place that can do it
+durably and the only place that can tell one of several identical debts from
+another. This module holds the rules and the shapes; the ledger assembles what
+the stored rows mean.
 """
 
 from __future__ import annotations
@@ -119,34 +125,12 @@ class Makegood:
         gap = self.debt.rate - self.rate
         return gap if gap.cents > 0 else Money(0)
 
-    def accepted(self) -> Makegood:
-        return _with(self, Offer.ACCEPTED)
-
-    def refused(self) -> Makegood:
-        return _with(self, Offer.REFUSED)
-
-    def expired(self) -> Makegood:
-        return _with(self, Offer.EXPIRED)
-
     def __str__(self) -> str:
         note = " short" if self.short else ""
         return (
             f"{self.debt.order}-{self.debt.line} offered {self.daypart} on "
             f"{self.day} at {self.rate}{note} ({self.state.value})"
         )
-
-
-def _with(offer: Makegood, state: Offer) -> Makegood:
-    if offer.state.is_settled:
-        raise MakegoodError(f"that offer was already {offer.state.value}", state=offer.state.value)
-    return Makegood(
-        debt=offer.debt,
-        day=offer.day,
-        daypart=offer.daypart,
-        rate=offer.rate,
-        state=state,
-        short=offer.short,
-    )
 
 
 def offer(debt: Debt, day: date, daypart: str, rate: Money) -> Makegood:
@@ -163,56 +147,82 @@ def offer(debt: Debt, day: date, daypart: str, rate: Money) -> Makegood:
 
 
 @dataclass
-class Ledger:
-    """What is owed, what has been offered, and what is still open."""
+class Entry:
+    """One debt and every offer made against it, oldest offer first.
 
-    debts: list[Debt] = field(default_factory=list)
+    This pairing is the whole reason the ledger is not two lists. Four spots
+    owed on the same line, the same day and for the same reason are four debts
+    that compare equal, so a ledger that matched offers to debts by value
+    closed all four the moment one makegood was accepted. Measured, once, on a
+    line that was four spots short in a week.
+    """
+
+    debt: Debt
     offers: list[Makegood] = field(default_factory=list)
 
-    def owe(self, debt: Debt) -> None:
-        self.debts.append(debt)
-
-    def propose(self, debt: Debt, day: date, daypart: str, rate: Money) -> Makegood:
-        if debt not in self.debts:
-            raise NotOwed(
-                f"nothing is owed on {debt.order}-{debt.line} for {debt.day}",
-                order=debt.order,
-                line=debt.line,
-            )
-        if self.open_offer_for(debt) is not None:
-            raise ConflictError(
-                f"{debt.order}-{debt.line} already has an offer open for {debt.day}",
-                order=debt.order,
-                line=debt.line,
-            )
-        made = offer(debt, day, daypart, rate)
-        self.offers.append(made)
-        return made
-
-    def settle(self, made: Makegood, state: Offer) -> Makegood:
-        """Record the client's answer, in place."""
-        if made not in self.offers:
-            raise MakegoodError("that offer is not on this ledger")
-        settled = _with(made, state)
-        self.offers[self.offers.index(made)] = settled
-        return settled
-
-    def open_offer_for(self, debt: Debt) -> Makegood | None:
+    @property
+    def accepted(self) -> Makegood | None:
         for made in self.offers:
-            if made.debt == debt and not made.state.is_settled:
+            if made.state is Offer.ACCEPTED:
                 return made
         return None
 
-    def settled_offer_for(self, debt: Debt) -> Makegood | None:
+    @property
+    def open(self) -> Makegood | None:
         for made in self.offers:
-            if made.debt == debt and made.state is Offer.ACCEPTED:
+            if not made.state.is_settled:
                 return made
         return None
+
+    @property
+    def is_owed(self) -> bool:
+        """Still owed until a makegood against this spot has been accepted."""
+        return self.accepted is None
+
+    def __str__(self) -> str:
+        answer = str(self.accepted) if self.accepted else "nothing accepted"
+        return f"{self.debt} ({answer})"
+
+
+@dataclass
+class Ledger:
+    """What is owed and what has been offered back. A read model.
+
+    Nothing here writes. Debts are raised and offers are made and settled
+    through :class:`cartwall.persistence.makegoodstore.MakegoodRepository`,
+    which is the only place that can do it durably and the only place that can
+    tell one of several identical debts from another. This assembles what those
+    rows mean and answers the questions the reports ask.
+    """
+
+    entries: list[Entry] = field(default_factory=list)
+
+    @property
+    def debts(self) -> list[Debt]:
+        return [entry.debt for entry in self.entries]
+
+    @property
+    def offers(self) -> list[Makegood]:
+        return [made for entry in self.entries for made in entry.offers]
+
+    def owe(self, debt: Debt, offers: list[Makegood] | None = None) -> Entry:
+        """Put one debt on the ledger, with whatever was offered against it."""
+        entry = Entry(debt=debt, offers=list(offers or []))
+        self.entries.append(entry)
+        return entry
+
+    def owed(self) -> list[Entry]:
+        """Entries with no accepted makegood, oldest first."""
+        found = [entry for entry in self.entries if entry.is_owed]
+        return sorted(found, key=lambda entry: (entry.debt.day, entry.debt.order, entry.debt.line))
 
     def still_owed(self) -> list[Debt]:
-        """Debts with no accepted makegood against them, oldest first."""
-        found = [debt for debt in self.debts if self.settled_offer_for(debt) is None]
-        return sorted(found, key=lambda debt: (debt.day, debt.order, debt.line))
+        return [entry.debt for entry in self.owed()]
+
+    def open_offers(self) -> list[Makegood]:
+        """Offers nobody has answered, soonest air date first."""
+        found = [entry.open for entry in self.entries if entry.open is not None]
+        return sorted(found, key=lambda made: made.day)
 
     def owed_by_line(self) -> dict[tuple[str, int], int]:
         tally: dict[tuple[str, int], int] = {}
@@ -230,14 +240,5 @@ class Ledger:
             tally[debt.cause.value] = tally.get(debt.cause.value, 0) + 1
         return dict(sorted(tally.items(), key=lambda pair: (-pair[1], pair[0])))
 
-    def expire_before(self, day: date) -> list[Makegood]:
-        """Withdraw offers whose air date has passed without an answer."""
-        withdrawn = []
-        for index, made in enumerate(list(self.offers)):
-            if not made.state.is_settled and made.day < day:
-                self.offers[index] = _with(made, Offer.EXPIRED)
-                withdrawn.append(self.offers[index])
-        return withdrawn
-
     def __len__(self) -> int:
-        return len(self.debts)
+        return len(self.entries)

@@ -4,14 +4,14 @@ import pytest
 
 from cartwall.domain.ratecard import ClassOfTime
 from cartwall.domain.spot import THIRTY
-from cartwall.errors import ConflictError
 from cartwall.money import Money
 from cartwall.services.makegood import (
     Cause,
     Debt,
+    Entry,
     Ledger,
+    Makegood,
     MakegoodError,
-    NotOwed,
     Offer,
     offer,
 )
@@ -84,154 +84,162 @@ def test_an_offer_reads_the_way_the_seller_reads_it():
     assert str(made) == "25-1044-1 offered MID on 2025-08-08 at $32.00 short (open)"
 
 
+def an_offer(debt=None, day=FRIDAY, daypart="AMD", rate="60.00", state=Offer.OPEN):
+    """An offer in whatever state, since the ledger no longer moves them."""
+    made = offer(debt or a_debt(), day, daypart, Money.parse(rate))
+    return Makegood(
+        debt=made.debt,
+        day=made.day,
+        daypart=made.daypart,
+        rate=made.rate,
+        state=state,
+        short=made.short,
+    )
+
+
 def test_nothing_is_owed_until_a_debt_is_recorded():
     ledger = Ledger()
     assert len(ledger) == 0
     assert ledger.still_owed() == []
     assert ledger.owed_value() == Money(0)
+    assert ledger.open_offers() == []
 
 
 def test_a_debt_with_no_offer_is_still_owed():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    assert ledger.still_owed() == [debt]
+    ledger.owe(a_debt())
+    assert ledger.still_owed() == [a_debt()]
     assert ledger.owed_value() == Money.dollars(60)
 
 
-def test_an_offer_that_is_open_does_not_settle_the_debt():
+def test_an_open_offer_does_not_close_the_debt():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    assert ledger.still_owed() == [debt]
+    ledger.owe(a_debt(), [an_offer()])
+    assert ledger.still_owed() == [a_debt()]
+    assert len(ledger.open_offers()) == 1
 
 
-def test_an_accepted_offer_settles_the_debt():
+def test_an_accepted_offer_closes_the_debt():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    made = ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    ledger.settle(made, Offer.ACCEPTED)
+    ledger.owe(a_debt(), [an_offer(state=Offer.ACCEPTED)])
     assert ledger.still_owed() == []
     assert ledger.owed_value() == Money(0)
+    assert ledger.open_offers() == []
 
 
-def test_a_refused_offer_leaves_the_debt_open():
+def test_a_refused_offer_leaves_the_debt_owed():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    made = ledger.propose(debt, FRIDAY, "OVN", Money.dollars(6))
-    ledger.settle(made, Offer.REFUSED)
-    assert ledger.still_owed() == [debt]
-    assert ledger.open_offer_for(debt) is None
+    ledger.owe(a_debt(), [an_offer(state=Offer.REFUSED)])
+    assert ledger.still_owed() == [a_debt()]
 
 
-def test_a_refused_offer_can_be_followed_by_a_better_one():
+def test_an_expired_offer_leaves_the_debt_owed():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    first = ledger.propose(debt, FRIDAY, "OVN", Money.dollars(6))
-    ledger.settle(first, Offer.REFUSED)
-    second = ledger.propose(debt, NEXT_WEEK, "AMD", Money.dollars(60))
-    ledger.settle(second, Offer.ACCEPTED)
+    ledger.owe(a_debt(), [an_offer(state=Offer.EXPIRED)])
+    assert ledger.still_owed() == [a_debt()]
+    assert ledger.open_offers() == []
+
+
+def test_a_refusal_then_an_acceptance_closes_it():
+    ledger = Ledger()
+    ledger.owe(
+        a_debt(),
+        [
+            an_offer(daypart="OVN", rate="6.00", state=Offer.REFUSED),
+            an_offer(day=NEXT_WEEK, state=Offer.ACCEPTED),
+        ],
+    )
     assert ledger.still_owed() == []
 
 
-def test_two_offers_cannot_be_open_on_one_debt_at_once():
+def test_four_identical_debts_are_four_entries():
+    """One accepted makegood closes one of them, not all four."""
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    with pytest.raises(ConflictError, match="already has an offer open"):
-        ledger.propose(debt, NEXT_WEEK, "AMD", Money.dollars(60))
+    for _ in range(4):
+        ledger.owe(a_debt(cause=Cause.NEVER_SCHEDULED))
+    assert len(ledger) == 4
+    assert ledger.owed_value() == Money.dollars(240)
+
+    ledger.entries[0].offers.append(an_offer(state=Offer.ACCEPTED))
+    assert len(ledger.still_owed()) == 3
+    assert ledger.owed_value() == Money.dollars(180)
 
 
-def test_an_offer_against_a_debt_nobody_recorded_is_refused():
+def test_an_entry_knows_which_of_its_offers_answered_it():
+    entry = Entry(
+        debt=a_debt(),
+        offers=[an_offer(state=Offer.REFUSED), an_offer(day=NEXT_WEEK, state=Offer.ACCEPTED)],
+    )
+    assert entry.accepted is not None
+    assert entry.accepted.day == NEXT_WEEK
+    assert entry.open is None
+    assert entry.is_owed is False
+
+
+def test_an_entry_with_nothing_offered_is_owed_and_has_no_open_offer():
+    entry = Entry(debt=a_debt())
+    assert entry.is_owed is True
+    assert entry.open is None
+    assert entry.accepted is None
+
+
+def test_an_entry_reads_as_the_debt_and_its_answer():
+    assert str(Entry(debt=a_debt())).endswith("(nothing accepted)")
+
+
+def test_the_debts_and_offers_read_across_every_entry():
     ledger = Ledger()
-    with pytest.raises(NotOwed, match="nothing is owed on 25-1044-1"):
-        ledger.propose(a_debt(), FRIDAY, "AMD", Money.dollars(60))
+    ledger.owe(a_debt(line=1), [an_offer(state=Offer.REFUSED), an_offer()])
+    ledger.owe(a_debt(line=2))
+    assert [debt.line for debt in ledger.debts] == [1, 2]
+    assert len(ledger.offers) == 2
 
 
-def test_an_answer_cannot_be_given_twice():
+def test_the_open_offers_come_back_soonest_first():
     ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    made = ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    settled = ledger.settle(made, Offer.ACCEPTED)
-    with pytest.raises(MakegoodError, match="already accepted"):
-        ledger.settle(settled, Offer.REFUSED)
+    ledger.owe(a_debt(line=1), [an_offer(day=NEXT_WEEK)])
+    ledger.owe(a_debt(line=2), [an_offer(day=FRIDAY)])
+    assert [made.day for made in ledger.open_offers()] == [FRIDAY, NEXT_WEEK]
 
 
-def test_settling_an_offer_the_ledger_never_saw():
+def test_what_is_owed_comes_back_oldest_first():
     ledger = Ledger()
-    with pytest.raises(MakegoodError, match="not on this ledger"):
-        ledger.settle(offer(a_debt(), FRIDAY, "AMD", Money.dollars(60)), Offer.ACCEPTED)
+    ledger.owe(a_debt(line=2, day=FRIDAY))
+    ledger.owe(a_debt(line=1, day=MONDAY))
+    assert [debt.day for debt in ledger.still_owed()] == [MONDAY, FRIDAY]
 
 
-def test_what_is_still_owed_comes_back_oldest_first():
+def test_the_worst_line_is_counted_first():
     ledger = Ledger()
-    for day, line in ((FRIDAY, 2), (MONDAY, 1), (MONDAY, 3)):
-        ledger.owe(a_debt(line=line, day=day))
-    assert [(debt.day, debt.line) for debt in ledger.still_owed()] == [
-        (MONDAY, 1),
-        (MONDAY, 3),
-        (FRIDAY, 2),
-    ]
+    for _ in range(3):
+        ledger.owe(a_debt(line=1))
+    ledger.owe(a_debt(line=2))
+    assert list(ledger.owed_by_line()) == [("25-1044", 1), ("25-1044", 2)]
+    assert ledger.owed_by_line()[("25-1044", 1)] == 3
 
 
-def test_the_worst_hit_line_is_reported_first():
+def test_a_closed_debt_leaves_its_line_out_of_the_tally():
     ledger = Ledger()
-    for line, times in ((1, 3), (2, 1)):
-        for offset in range(times):
-            ledger.owe(a_debt(line=line, day=date(2025, 8, 4 + offset)))
-    owed = ledger.owed_by_line()
-    assert list(owed) == [("25-1044", 1), ("25-1044", 2)]
-    assert owed[("25-1044", 1)] == 3
+    ledger.owe(a_debt(line=1), [an_offer(state=Offer.ACCEPTED)])
+    ledger.owe(a_debt(line=2))
+    assert ledger.owed_by_line() == {("25-1044", 2): 1}
 
 
-def test_the_debt_is_counted_by_what_caused_it():
+def test_the_causes_are_counted_worst_first():
     ledger = Ledger()
-    ledger.owe(a_debt(line=1, cause=Cause.DID_NOT_RUN))
-    ledger.owe(a_debt(line=2, cause=Cause.BUMPED))
+    ledger.owe(a_debt(line=1, cause=Cause.NEVER_SCHEDULED))
+    ledger.owe(a_debt(line=2, cause=Cause.NEVER_SCHEDULED))
     ledger.owe(a_debt(line=3, cause=Cause.BUMPED))
-    ledger.owe(a_debt(line=4, cause=Cause.NEVER_SCHEDULED))
-    assert ledger.by_cause() == {"bumped": 2, "did not run": 1, "never scheduled": 1}
+    assert ledger.by_cause() == {"never scheduled": 2, "bumped": 1}
 
 
-def test_the_open_debt_is_worth_what_it_was_sold_at():
+def test_a_ledger_is_worth_the_rate_each_spot_was_sold_at():
     ledger = Ledger()
     ledger.owe(a_debt(line=1, rate="60.00"))
-    ledger.owe(a_debt(line=2, rate="32.00"))
-    assert ledger.owed_value() == Money.dollars(92)
+    ledger.owe(a_debt(line=2, rate="12.50"))
+    assert ledger.owed_value() == Money.parse("72.50")
 
 
-def test_an_offer_whose_day_has_passed_is_withdrawn():
-    ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    withdrawn = ledger.expire_before(NEXT_WEEK)
-    assert len(withdrawn) == 1
-    assert withdrawn[0].state is Offer.EXPIRED
-    assert ledger.open_offer_for(debt) is None
-    assert ledger.still_owed() == [debt]
-
-
-def test_an_offer_still_in_the_future_is_left_alone():
-    ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    ledger.propose(debt, NEXT_WEEK, "AMD", Money.dollars(60))
-    assert ledger.expire_before(FRIDAY) == []
-    assert ledger.open_offer_for(debt) is not None
-
-
-def test_an_accepted_offer_is_not_expired_out_from_under_it():
-    ledger = Ledger()
-    debt = a_debt()
-    ledger.owe(debt)
-    made = ledger.propose(debt, FRIDAY, "AMD", Money.dollars(60))
-    ledger.settle(made, Offer.ACCEPTED)
-    assert ledger.expire_before(NEXT_WEEK) == []
-    assert ledger.still_owed() == []
+def test_an_offer_earlier_than_the_debt_is_refused():
+    with pytest.raises(MakegoodError, match="cannot run on"):
+        offer(a_debt(day=FRIDAY), MONDAY, "AMD", Money.dollars(60))

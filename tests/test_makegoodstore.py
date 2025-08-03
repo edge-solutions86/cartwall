@@ -329,3 +329,19 @@ def test_each_of_the_four_is_offered_against_on_its_own(engine):
     with unit_of_work(engine) as uow:
         assert len(uow.makegoods.open_offers()) == 2
         assert len(uow.makegoods.ledger().still_owed()) == 4
+
+
+def test_one_accepted_makegood_closes_one_of_four_and_not_all_four(engine):
+    """The collapse this guards against was real, and it read as zero owed."""
+    with unit_of_work(engine) as uow:
+        uow.makegoods.raise_all([a_debt(cause=Cause.NEVER_SCHEDULED) for _ in range(4)])
+        made = uow.makegoods.propose(
+            a_debt(cause=Cause.NEVER_SCHEDULED), FRIDAY, "AMD", Money.parse("60.00")
+        )
+        uow.makegoods.settle(made.id, Offer.ACCEPTED)
+        uow.commit()
+    with unit_of_work(engine) as uow:
+        ledger = uow.makegoods.ledger()
+    assert len(ledger.still_owed()) == 3
+    assert ledger.owed_value() == Money.parse("180.00")
+    assert ledger.owed_by_line() == {("25-1044", 1): 3}

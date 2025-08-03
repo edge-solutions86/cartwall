@@ -199,10 +199,10 @@ class MakegoodRepository:
         )
         built = Ledger()
         for row in rows:
-            debt = debt_from(row)
-            built.owe(debt)
-            for made in sorted(row.offers, key=lambda one: one.id):
-                built.offers.append(offer_from(made))
+            built.owe(
+                debt_from(row),
+                [offer_from(made) for made in sorted(row.offers, key=lambda one: one.id)],
+            )
         return built
 
     def open_offers(self, order: str | None = None) -> list[OfferRow]:
