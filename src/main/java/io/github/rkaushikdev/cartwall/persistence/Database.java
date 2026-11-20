@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -107,15 +108,15 @@ public final class Database implements AutoCloseable {
         bean.setPackagesToScan(MAPPED_PACKAGE);
         bean.setPersistenceUnitName("cartwall");
         bean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        bean.setJpaPropertyMap(Map.of(
-                "hibernate.hbm2ddl.auto",
-                ddl,
-                "hibernate.show_sql",
-                String.valueOf(echoSql),
-                "hibernate.default_batch_fetch_size",
-                "64",
-                "hibernate.jdbc.time_zone",
-                "UTC"));
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("hibernate.hbm2ddl.auto", ddl);
+        properties.put("hibernate.show_sql", String.valueOf(echoSql));
+        properties.put("hibernate.default_batch_fetch_size", "64");
+        properties.put("hibernate.jdbc.time_zone", "UTC");
+        // Hibernate otherwise lays columns out by type size, composite keys included, and a
+        // schema it builds stops matching the order the migrations declare.
+        properties.put("hibernate.column_ordering_strategy", "legacy");
+        bean.setJpaPropertyMap(properties);
         return bean;
     }
 

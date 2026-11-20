@@ -76,6 +76,11 @@ public class RotationRow {
         this.kind = kind;
     }
 
+    /** One cart at its place in an even rotation, weighted once. */
+    public RotationRow(int position, String cart) {
+        this(position, cart, 1, RotationKind.EVEN);
+    }
+
     public Integer getId() {
         return id;
     }

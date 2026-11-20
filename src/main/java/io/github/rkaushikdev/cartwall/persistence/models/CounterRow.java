@@ -3,9 +3,9 @@ package io.github.rkaushikdev.cartwall.persistence.models;
 import static io.github.rkaushikdev.cartwall.persistence.Columns.CODE_LENGTH;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
@@ -18,19 +18,13 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "counter")
-@IdClass(CounterRow.Key.class)
 public class CounterRow {
 
     /** Document numbers open here so a four digit number always reads as one. */
     public static final int FIRST_NUMBER = 1000;
 
-    @Id
-    @Column(name = "series", length = CODE_LENGTH, nullable = false)
-    private String series;
-
-    @Id
-    @Column(name = "year", nullable = false)
-    private int year;
+    @EmbeddedId
+    private Key key;
 
     @Column(name = "last", nullable = false)
     private int last = FIRST_NUMBER;
@@ -38,16 +32,15 @@ public class CounterRow {
     protected CounterRow() {}
 
     public CounterRow(String series, int year) {
-        this.series = series;
-        this.year = year;
+        this.key = new Key(series, year);
     }
 
     public String getSeries() {
-        return series;
+        return key.series;
     }
 
     public int getYear() {
-        return year;
+        return key.year;
     }
 
     public int getLast() {
@@ -60,13 +53,21 @@ public class CounterRow {
 
     @Override
     public String toString() {
-        return "<CounterRow " + series + " " + year + " at " + last + ">";
+        return "<CounterRow " + key.series + " " + key.year + " at " + last + ">";
     }
 
-    /** The counter's key: a series and a year. */
+    /**
+     * The counter's key: a series and a year, in that order.
+     *
+     * @see CounterRow#find
+     */
+    @Embeddable
     public static class Key implements Serializable {
 
+        @Column(name = "series", length = CODE_LENGTH, nullable = false)
         private String series;
+
+        @Column(name = "year", nullable = false)
         private int year;
 
         protected Key() {}
@@ -85,5 +86,10 @@ public class CounterRow {
         public int hashCode() {
             return Objects.hash(series, year);
         }
+    }
+
+    /** The key {@code em.find(CounterRow.class, ...)} takes for one series in one year. */
+    public static Key find(String series, int year) {
+        return new Key(series, year);
     }
 }

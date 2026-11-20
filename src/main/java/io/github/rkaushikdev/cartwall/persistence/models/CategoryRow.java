@@ -55,9 +55,16 @@ public class CategoryRow {
 
     protected CategoryRow() {}
 
+    /** A code to file through its advertiser's list of codes. */
     public CategoryRow(String path, String root) {
         this.path = path;
         this.root = root;
+    }
+
+    /** A code filed against an advertiser by code. */
+    public CategoryRow(String advertiser, String path, String root) {
+        this(path, root);
+        this.advertiser = advertiser;
     }
 
     void fileAgainst(AdvertiserRow owner) {
