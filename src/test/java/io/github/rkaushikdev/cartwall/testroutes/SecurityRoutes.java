@@ -1,11 +1,17 @@
-package io.github.rkaushikdev.cartwall.api;
+package io.github.rkaushikdev.cartwall.testroutes;
 
+import io.github.rkaushikdev.cartwall.api.Caller;
+import io.github.rkaushikdev.cartwall.api.Requires;
+import io.github.rkaushikdev.cartwall.api.Role;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** One route per rung of the ladder, for the tests of the gate itself. */
+/**
+ * One route per rung of the ladder, for the tests of the gate itself. It lives outside the
+ * application's packages so that only the tests that import it get its routes.
+ */
 @RestController
 public class SecurityRoutes {
 

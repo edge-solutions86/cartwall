@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.rkaushikdev.cartwall.persistence.TestDatabase;
+import io.github.rkaushikdev.cartwall.testroutes.SecurityRoutes;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
