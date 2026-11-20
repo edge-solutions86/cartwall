@@ -85,6 +85,11 @@ public class InvoiceDetailRow {
         return id;
     }
 
+    /** The invoice this line of detail is printed on. */
+    public InvoiceRow getInvoice() {
+        return invoice;
+    }
+
     public String getInvoiceNumber() {
         return invoiceNumber;
     }

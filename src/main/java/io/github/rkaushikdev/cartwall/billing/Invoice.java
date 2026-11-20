@@ -145,6 +145,11 @@ public record Invoice(
         return List.copyOf(days);
     }
 
+    /** The same invoice under the number it was given off the counter. */
+    public Invoice withNumber(String number) {
+        return new Invoice(number, order, advertiser, payer, month, commissionRate, details, summaries, raised);
+    }
+
     /** The same invoice with the summary given. */
     public Invoice withSummaries(List<Summary> summaries) {
         return new Invoice(number, order, advertiser, payer, month, commissionRate, details, summaries, raised);
