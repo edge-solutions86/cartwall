@@ -17,6 +17,7 @@ public record Agency(String code, String name, BigDecimal rate, boolean advertis
     static final Pattern CODE = Pattern.compile("^[A-Z][A-Z0-9]{1,7}$");
 
     public Agency {
+        rate = Decimals.normalized(rate);
         if (!CODE.matcher(code).matches()) {
             throw new AccountError("'" + code + "' is not an account code");
         }

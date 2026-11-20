@@ -49,6 +49,7 @@ public record Station(
 
     public Station {
         Objects.requireNonNull(carries, "carries");
+        frequency = Decimals.normalized(frequency);
         if (!CALL_SIGN.matcher(call).matches()) {
             throw new StationError("'" + call + "' is not a call sign");
         }

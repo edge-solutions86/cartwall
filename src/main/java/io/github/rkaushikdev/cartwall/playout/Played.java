@@ -46,6 +46,16 @@ public enum Played {
         return this == PLAYED || this == TRUNCATED;
     }
 
+    /** The status stored under its own name. */
+    public static Played fromValue(String value) {
+        for (Played status : values()) {
+            if (status.value.equals(value)) {
+                return status;
+            }
+        }
+        throw new AsRunError("'" + value + "' is not an as-run status");
+    }
+
     /** The status for what the automation wrote, or {@link #UNKNOWN}. */
     public static Played written(String text) {
         return CODES.getOrDefault(text.strip().toLowerCase(Locale.ROOT), UNKNOWN);
