@@ -95,14 +95,25 @@ public final class Main {
                 .setCaseInsensitiveEnumValuesAllowed(true)
                 .setOut(terminal.out())
                 .setErr(terminal.err())
-                .setExecutionExceptionHandler((trouble, line, parsed) -> refused(terminal, trouble));
+                .setExecutionExceptionHandler((trouble, line, parsed) -> refused(terminal, trouble))
+                .setExecutionStrategy(Main::quietUnlessServing);
         try {
-            return HouseLog.quietly(() -> command.execute(args));
+            return command.execute(args);
         } finally {
             main.close();
             terminal.out().flush();
             terminal.err().flush();
         }
+    }
+
+    /** Every command runs with the package's logging off, except the service, which logs. */
+    private static int quietUnlessServing(CommandLine.ParseResult parsed) {
+        CommandLine.RunLast last = new CommandLine.RunLast();
+        CommandLine.ParseResult command = parsed.subcommand();
+        if (command != null && command.commandSpec().userObject() instanceof Serve) {
+            return last.execute(parsed);
+        }
+        return HouseLog.quietly(() -> last.execute(parsed));
     }
 
     private static int refused(Terminal terminal, Exception trouble) throws Exception {

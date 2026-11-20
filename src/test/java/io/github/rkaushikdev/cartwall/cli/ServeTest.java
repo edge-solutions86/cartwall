@@ -2,7 +2,9 @@ package io.github.rkaushikdev.cartwall.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.rkaushikdev.cartwall.HouseLog;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -54,6 +56,7 @@ class ServeTest {
         } finally {
             serving.interrupt();
             serving.join(Duration.ofSeconds(60));
+            HouseLog.configure("info", new ByteArrayOutputStream());
         }
         assertThat(serving.isAlive()).isFalse();
         assertThat(code.get()).isEqualTo(Main.OK);

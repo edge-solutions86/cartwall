@@ -1,5 +1,6 @@
 package io.github.rkaushikdev.cartwall.cli;
 
+import io.github.rkaushikdev.cartwall.HouseLog;
 import io.github.rkaushikdev.cartwall.Settings;
 import io.github.rkaushikdev.cartwall.api.CartwallApplication;
 import io.github.rkaushikdev.cartwall.api.KeyRing;
@@ -15,7 +16,8 @@ import picocli.CommandLine.ParentCommand;
 /**
  * Run the HTTP service until it is stopped. The one command that starts Spring: it hands the
  * service the settings, the database it opened and the key ring the environment configures, and
- * waits until the service closes, on a signal or an interrupt.
+ * waits until the service closes, on a signal or an interrupt. The package's event log goes to
+ * standard error at the level {@code CARTWALL_LOG_LEVEL} asks for.
  */
 @Command(name = "serve", mixinStandardHelpOptions = true, description = "Run the HTTP service until it is stopped.")
 final class Serve implements Callable<Integer> {
@@ -33,6 +35,8 @@ final class Serve implements Callable<Integer> {
     public Integer call() {
         Settings settings = main.settings();
         KeyRing keys = KeyRing.fromEnvironment(main.terminal().environment());
+        String level = main.terminal().environment().apply(HouseLog.LEVEL_VAR);
+        HouseLog.configure(level == null ? "info" : level, System.err);
         CountDownLatch closed = new CountDownLatch(1);
         try (ConfigurableApplicationContext service = CartwallApplication.run(
                 settings, main.database(), keys, "--server.port=" + port, "--server.address=" + host)) {
