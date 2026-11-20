@@ -1,0 +1,114 @@
+package io.github.rkaushikdev.cartwall.reports;
+
+import io.github.rkaushikdev.cartwall.Money;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * One payer, everything open, as of one date, with the aging that is the only part anybody reads.
+ *
+ * <p>The list is courtesy. The aging is the document: an agency at ninety days is a conversation
+ * with the sales manager, and one at a hundred and twenty is a conversation about whether they keep
+ * placing.
+ *
+ * @param payer whose statement it is
+ * @param on the date it is drawn as of
+ * @param items every invoice on it
+ */
+public record Statement(String payer, LocalDate on, List<Item> items) {
+
+    private static final DateTimeFormatter PRINTED = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ROOT);
+    private static final Comparator<Item> OLDEST_FIRST =
+            Comparator.comparing(Item::raised).thenComparing(Item::invoice);
+
+    public Statement {
+        items = List.copyOf(items);
+    }
+
+    /** Payers with the most past due beyond sixty days, for the sales manager's Monday list. */
+    public static List<Statement> worstFirst(List<Statement> statements) {
+        return worstFirst(statements, 60);
+    }
+
+    /** Payers with the most past due beyond {@code days}, worst first. */
+    public static List<Statement> worstFirst(List<Statement> statements, int days) {
+        return statements.stream()
+                .filter(entry -> !entry.pastDue(days).isZero())
+                .sorted(Comparator.comparingLong(
+                                (Statement entry) -> -entry.pastDue(days).cents())
+                        .thenComparing(Statement::payer))
+                .toList();
+    }
+
+    public Money total() {
+        return Money.total(items.stream().map(Item::owing).toList());
+    }
+
+    public boolean isClear() {
+        return total().isZero();
+    }
+
+    /** Anything still owing, oldest first. */
+    public List<Item> openItems() {
+        return items.stream()
+                .filter(item -> !item.owing().isZero())
+                .sorted(OLDEST_FIRST)
+                .toList();
+    }
+
+    /** The four buckets, always all four, even the empty ones, in bucket order. */
+    public Map<Bucket, Money> aging() {
+        Map<Bucket, Money> tally = new EnumMap<>(Bucket.class);
+        for (Bucket bucket : Bucket.values()) {
+            tally.put(bucket, Money.ZERO);
+        }
+        for (Item item : openItems()) {
+            tally.merge(item.bucket(on), item.owing(), Money::plus);
+        }
+        return Collections.unmodifiableMap(tally);
+    }
+
+    /** Everything thirty days old or more. */
+    public Money pastDue() {
+        return pastDue(30);
+    }
+
+    /** Everything {@code days} old or more. The number that starts the call. */
+    public Money pastDue(int days) {
+        return Money.total(openItems().stream()
+                .filter(item -> item.age(on) >= days)
+                .map(Item::owing)
+                .toList());
+    }
+
+    public Optional<Item> oldest() {
+        return openItems().stream().findFirst();
+    }
+
+    /** The statement as it is posted, aging at the foot. */
+    public String render() {
+        List<String> lines = new ArrayList<>(List.of("STATEMENT   " + payer, "AS OF       " + PRINTED.format(on), ""));
+        List<Item> open = openItems();
+        open.forEach(item -> lines.add("  " + item));
+        if (open.isEmpty()) {
+            lines.add("  nothing outstanding");
+        }
+        lines.addAll(List.of("", "TOTAL       " + total(), ""));
+        aging().forEach((bucket, money) -> lines.add("  %-10s %s".formatted(bucket.label(), money)));
+        return String.join("\n", lines) + "\n";
+    }
+
+    @Override
+    public String toString() {
+        return payer + " as of " + PRINTED.format(on) + ": " + total() + " on "
+                + openItems().size();
+    }
+}
