@@ -56,6 +56,12 @@ public final class AccountBook {
         advertisers.put(advertiser.code(), advertiser);
     }
 
+    /** Put a changed account in place of the one on file under the same code. */
+    public void replaceAdvertiser(Advertiser changed) {
+        advertiser(changed.code());
+        advertisers.put(changed.code(), changed);
+    }
+
     public Advertiser advertiser(String code) {
         Advertiser advertiser = advertisers.get(code);
         if (advertiser == null) {
