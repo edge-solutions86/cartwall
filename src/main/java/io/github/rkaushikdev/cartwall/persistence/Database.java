@@ -23,7 +23,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 /**
  * One database: a connection pool, the schema's migrations, and the entity manager factory units
- * of work are opened from. The counterpart of the original's engine.
+ * of work are opened from.
  *
  * <p>The command line opens one of these from the settings and nothing else, so a cron job starts
  * without a framework and honours {@code --database} before anything connects. The service builds
@@ -42,8 +42,8 @@ public final class Database implements AutoCloseable {
     public static final String MIGRATIONS = "classpath:db/migration";
 
     /**
-     * Column names the schema uses that H2 otherwise reads as keywords. The original ran on SQLite
-     * and Postgres, where none of them are reserved.
+     * Column names the schema uses that H2 otherwise reads as keywords. They are ordinary names in
+     * the domain, so the URL tells H2 so rather than the schema renaming them.
      */
     static final String H2_NON_KEYWORDS = "NON_KEYWORDS=DAY,HOUR,MONTH,YEAR";
 

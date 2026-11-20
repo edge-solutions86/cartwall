@@ -64,8 +64,8 @@ public final class Houses {
         Map<String, ClockGrid> programming = new LinkedHashMap<>();
         Map<String, SeparationBook> separation = new LinkedHashMap<>();
         List<String> calls = cluster.logged().stream().map(Station::call).toList();
-        // One table at a time across the cluster, as the original read them, so the first thing
-        // missing is the first thing reported.
+        // One table at a time across the cluster, so the first thing missing is the first thing
+        // reported.
         calls.forEach(call -> dayparts.put(call, uow.stations().dayparts(call)));
         calls.forEach(call -> programming.put(call, gridInForce(uow, call, on)));
         calls.forEach(call -> separation.put(call, separationFor(uow, call)));

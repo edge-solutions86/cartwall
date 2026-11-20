@@ -15,8 +15,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * A small client over MockMvc for the API tests, standing in for the original's test client:
- * send a request, get the status and the parsed body back.
+ * A small client over MockMvc for the API tests: send a request, get the status and the parsed
+ * body back.
  */
 public final class Http {
 

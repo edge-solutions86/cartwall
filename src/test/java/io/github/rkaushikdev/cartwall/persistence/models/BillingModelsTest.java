@@ -61,7 +61,7 @@ class BillingModelsTest {
         session.close();
     }
 
-    /** An invoice with the defaults the original's helper filled in, overridable one at a time. */
+    /** An invoice with the usual defaults, overridable one at a time. */
     private record AnInvoice(
             String number,
             String order,

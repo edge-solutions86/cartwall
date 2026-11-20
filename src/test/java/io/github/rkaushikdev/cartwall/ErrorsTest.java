@@ -56,18 +56,17 @@ class ErrorsTest {
     }
 
     @Test
-    void theOldExceptValueErrorAroundOrderEntryStillCatchesEverything() {
-        // Python made every leaf a ValueError as well. Java has one superclass, so the
-        // catch-everything around order entry is a catch of ValidationError.
+    void oneCatchOfValidationErrorAroundOrderEntryCatchesEveryLeaf() {
+        // The catch-everything around order entry is a catch of ValidationError.
         for (CartwallError leaf : leaves()) {
             assertThat(leaf).isInstanceOf(ValidationError.class);
         }
     }
 
     @Test
-    void aLookupFailureIsAKeyErrorSoDictStyleCallersStillWork() {
-        // Python made LookupFailure a KeyError as well. Here a lookup failure is its own branch
-        // under the root, never a validation failure, so a caller catching misses catches it.
+    void aLookupFailureIsItsOwnBranchSoACallerCatchingMissesCatchesIt() {
+        // A lookup failure is its own branch under the root, never a validation failure, so a
+        // caller catching misses catches it.
         assertThat(new LookupFailure("nothing on file")).isNotInstanceOf(ValidationError.class);
         assertThatThrownBy(() -> {
                     throw new LookupFailure("nothing on file");

@@ -49,7 +49,7 @@ class TradingModelsTest {
         session.close();
     }
 
-    /** A line with the defaults the original's helper filled in, overridable one at a time. */
+    /** A line with the usual defaults, overridable one at a time. */
     private record ALine(
             int number,
             String daypart,

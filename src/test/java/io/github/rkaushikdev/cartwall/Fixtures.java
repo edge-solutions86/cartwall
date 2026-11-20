@@ -205,7 +205,7 @@ public final class Fixtures {
                         row("ROS", IMMEDIATE, 12)));
     }
 
-    /** Python's {@code round()}: to the nearest whole number, a tie going to the even one. */
+    /** To the nearest whole number, a tie going to the even one. */
     static long rounded(double value) {
         return (long) Math.rint(value);
     }

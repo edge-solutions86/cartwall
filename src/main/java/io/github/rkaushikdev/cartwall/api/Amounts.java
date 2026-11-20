@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public final class Amounts {
 
-    /** The words a decimal string may also be, as Python's decimal module reads them. */
+    /** The words a decimal string may also be: not a number, and infinity, either sign. */
     private static final Pattern SPECIAL = Pattern.compile("[+-]?(nan|snan|inf|infinity)");
 
     private Amounts() {}

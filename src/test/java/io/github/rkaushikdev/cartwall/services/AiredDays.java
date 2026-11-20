@@ -25,8 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Days built, signed, aired and posted, for the tests of what is owed afterwards. The owing and
- * raising modules of the original each wrote this helper; here it is written once.
+ * Days built, signed, aired and posted, for the tests of what is owed afterwards.
  */
 final class AiredDays {
 

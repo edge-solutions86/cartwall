@@ -6,9 +6,9 @@ import java.math.RoundingMode;
 /**
  * A fraction written as a percentage to one place, the way the reports have always printed it.
  *
- * <p>Python's {@code .1%} rounds the exact value of the double half to even, so a sellout of one
- * sixteenth prints as 6.2% and not 6.3%. Java's own {@code %.1f} rounds half up, which is why this
- * exists rather than a format string.
+ * <p>The figure rounds the exact value of the double half to even, so a sellout of one sixteenth
+ * prints as 6.2% and not 6.3%. Java's own {@code %.1f} rounds half up, which is why this exists
+ * rather than a format string.
  */
 final class Percent {
 

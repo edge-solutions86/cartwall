@@ -27,7 +27,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
  * How the service reads and writes JSON, in one place so the application and the tests of its
  * shapes cannot drift apart.
  *
- * <p>Field names are snake case, as the original's were. A field nobody declared is an error, not a
+ * <p>Field names are snake case. A field nobody declared is an error, not a
  * shrug. Dates are ISO strings. The enumerations cross as the short strings the office reads
  * ({@code fixed}, {@code cash in advance}), the same strings the database stores.
  */

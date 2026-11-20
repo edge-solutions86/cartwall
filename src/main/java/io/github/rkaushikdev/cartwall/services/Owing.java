@@ -100,7 +100,7 @@ public final class Owing {
      * The gap between what each line asked for in a week and what is on the log.
      *
      * <p>The orders are those running on the week's first day followed by those running on its
-     * last, as the original listed them, so an order whose flight covers both is read twice.
+     * last, so an order whose flight covers both is read twice.
      */
     public static List<Debt> neverScheduled(UnitOfWork uow, BroadcastWeek week) {
         List<Order> running = new ArrayList<>(uow.orders().runningOn(week.start()));

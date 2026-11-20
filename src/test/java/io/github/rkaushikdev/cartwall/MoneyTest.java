@@ -47,9 +47,8 @@ class MoneyTest {
 
     @Test
     void noFloatEverBecomesMoney() {
-        // The original refused a float at run time. Here the constructor takes whole cents and
-        // nothing else, so a fractional amount has to go through dollars(), which names the
-        // rounding, and the compiler refuses the rest.
+        // The constructor takes whole cents and nothing else, so a fractional amount has to go
+        // through dollars(), which names the rounding, and the compiler refuses the rest.
         Constructor<?>[] constructors = Money.class.getConstructors();
         assertThat(constructors).hasSize(1);
         assertThat(constructors[0].getParameterTypes()).containsExactly(long.class);

@@ -189,8 +189,8 @@ class RatecardTest {
 
     @Test
     void aLengthWithNoFactorFiledIsRefusedRatherThanGuessed() {
-        // The original handed the quote an object posing as a :25. A SpotLength cannot be a :25
-        // here, so the refusal is asked of the factor lookup the quote goes through.
+        // A SpotLength cannot be a :25, so the refusal is asked of the factor lookup the quote
+        // goes through.
         assertThatThrownBy(() -> Quote.lengthFactor(25))
                 .isInstanceOf(RateError.class)
                 .hasMessageContaining("no length factor")

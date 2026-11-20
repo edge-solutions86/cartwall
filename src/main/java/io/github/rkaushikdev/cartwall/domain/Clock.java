@@ -141,7 +141,7 @@ public record Clock(String code, String name, List<Break> breaks) implements Ite
         return code + " (" + general(commercialMinutes()) + " minutes)";
     }
 
-    /** A number the way Python's {@code :g} writes it: six significant digits, no trailing zeros. */
+    /** A number in general form: six significant digits, no trailing zeros. */
     static String general(double value) {
         return new BigDecimal(value)
                 .round(new MathContext(6, RoundingMode.HALF_EVEN))

@@ -11,10 +11,9 @@ import java.util.function.Consumer;
  * The suite's database: one H2 in memory, migrated once for the whole run and emptied before each
  * test that asks for it.
  *
- * <p>The original built and threw away an in-memory SQLite database per test. Building a Hibernate
- * factory per test costs more than the tests do, so this keeps one database and one factory and
- * gives every test the same thing the original did: the schema, and nothing in it, with the
- * generated keys counting from one.
+ * <p>Building a Hibernate factory per test costs more than the tests do, so this keeps one database
+ * and one factory and gives every test a database of its own in effect: the schema, and nothing in
+ * it, with the generated keys counting from one.
  */
 public final class TestDatabase {
 

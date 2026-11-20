@@ -31,8 +31,8 @@ public final class AccountRepository {
     /**
      * File the whole book, replacing every advertiser on file under the same code.
      *
-     * <p>Replacing an advertiser replaces its codes and its copy with it, the way the original's
-     * delete-then-add did.
+     * <p>Replacing an advertiser replaces its codes and its copy with it: the old row is deleted
+     * and the new one added.
      */
     public void saveBook(AccountBook book) {
         for (Agency agency : book.agencies().values()) {

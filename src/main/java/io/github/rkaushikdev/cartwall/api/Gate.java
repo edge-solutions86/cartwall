@@ -16,9 +16,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * The door every route but health and readiness goes through.
  *
  * <p>It runs as an interceptor, before Spring resolves a single argument, so a caller who may not
- * be here is told so before anybody reads what they sent: a 401 or a 403 beats a 422, as it did in
- * the original. It also hands the caller to any handler that asks for a {@link Caller}, so a write
- * can put a name on the audit trail.
+ * be here is told so before anybody reads what they sent: a 401 or a 403 beats a 422. It also
+ * hands the caller to any handler that asks for a {@link Caller}, so a write can put a name on the
+ * audit trail.
  */
 public final class Gate implements HandlerInterceptor, HandlerMethodArgumentResolver {
 

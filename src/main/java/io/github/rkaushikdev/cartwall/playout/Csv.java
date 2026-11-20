@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Comma separated values, read the way the automation's export writes them and Python's csv
- * module reads them: double quotes around a field that holds a comma, a doubled quote for a quote,
- * and a blank line skipped rather than read as an empty row.
+ * Comma separated values, read the way the automation's export writes them: double quotes around
+ * a field that holds a comma, a doubled quote for a quote, and a blank line skipped rather than
+ * read as an empty row.
  */
 final class Csv {
 

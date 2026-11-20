@@ -49,7 +49,7 @@ class LogModelsTest {
         session.close();
     }
 
-    /** A spot with the defaults the original's helper filled in, overridable one at a time. */
+    /** A spot with the usual defaults, overridable one at a time. */
     private record ASpot(
             int hour,
             int number,

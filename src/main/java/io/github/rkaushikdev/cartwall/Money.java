@@ -35,7 +35,7 @@ public record Money(long cents) implements Comparable<Money> {
     /** What a recognised agency keeps. Direct business has no commission. */
     public static final BigDecimal AGENCY_RATE = new BigDecimal("0.15");
 
-    /** The precision the original arithmetic ran at: 28 significant digits, half even. */
+    /** The precision division runs at: 28 significant digits, half even. */
     static final MathContext DIVISION = new MathContext(28, RoundingMode.HALF_EVEN);
 
     private static final Pattern AMOUNT = Pattern.compile("^\\$?\\s*(-?)([\\d,]+)(?:\\.(\\d{1,2}))?$");

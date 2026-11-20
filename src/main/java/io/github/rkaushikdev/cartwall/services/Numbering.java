@@ -40,8 +40,8 @@ public final class Numbering {
     }
 
     /**
-     * {@code 25-1044} back into a year and a sequence. Splits at the first dash, as the original
-     * did, so {@code 25-10-44} is refused rather than read as two numbers.
+     * {@code 25-1044} back into a year and a sequence. Splits at the first dash, so {@code
+     * 25-10-44} is refused rather than read as two numbers.
      */
     public static DocumentNumber parseNumber(String number) {
         int dash = number.indexOf('-');

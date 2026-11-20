@@ -61,8 +61,8 @@ class AirtimeTest {
 
     @Test
     void tenthsHaveToBeWhole() {
-        // The original refused 29.7 at run time. The constructor here takes an int and nothing
-        // else, so a fractional tenth cannot be written down at all.
+        // The constructor takes an int and nothing else, so a fractional tenth such as 29.7
+        // cannot be written down at all.
         Constructor<?>[] constructors = Duration.class.getConstructors();
         assertThat(constructors).hasSize(1);
         assertThat(constructors[0].getParameterTypes()).containsExactly(int.class);
