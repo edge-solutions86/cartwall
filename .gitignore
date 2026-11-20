@@ -7,16 +7,3 @@ build/
 out/
 *.mv.db
 *.trace.db
-
-# Python, until the original sources are removed
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-*.egg-info/
-dist/
-.venv/
-*.sqlite3
