@@ -86,8 +86,8 @@ public final class Http {
     }
 
     /** A JSON object as a map, to compare whole. */
-    public static Map<String, Object> asMap(JsonNode node) {
-        return JSON.convertValue(node, new TypeReference<Map<String, Object>>() {});
+    public static Map<String, Object> asMap(JsonNode tree) {
+        return JSON.convertValue(tree, new TypeReference<Map<String, Object>>() {});
     }
 
     static String write(Object body) {

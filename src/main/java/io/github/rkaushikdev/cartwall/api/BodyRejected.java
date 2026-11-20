@@ -93,12 +93,12 @@ public class BodyRejected extends ValidationError {
     /** A bean path as dots: {@code lines[0].rate} becomes {@code lines.0.rate}. */
     static String dotted(Path path) {
         List<String> steps = new ArrayList<>();
-        for (Path.Node node : path) {
-            if (node.getIndex() != null) {
-                steps.add(String.valueOf(node.getIndex()));
+        for (Path.Node step : path) {
+            if (step.getIndex() != null) {
+                steps.add(String.valueOf(step.getIndex()));
             }
-            if (node.getName() != null && !node.getName().startsWith("<")) {
-                steps.add(snake(node.getName()));
+            if (step.getName() != null && !step.getName().startsWith("<")) {
+                steps.add(snake(step.getName()));
             }
         }
         return String.join(".", steps);
