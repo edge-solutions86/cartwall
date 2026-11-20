@@ -61,7 +61,7 @@ class AvailsReportTest {
 
     @Test
     void anEmptyRowDoesNotDivideByZero() {
-        assertThat(new AvailsRow("XXX", 0, 0).sellout()).isZero();
+        assertThat(new AvailsRow("ZZZ", 0, 0).sellout()).isZero();
     }
 
     @Test

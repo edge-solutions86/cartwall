@@ -154,9 +154,9 @@ class SeparationTest {
         assertThatThrownBy(() -> book.file(new SeparationRule("SEP-ADV", Subject.CART, Scope.HOUR)))
                 .isInstanceOf(SeparationError.class)
                 .hasMessageContaining("already filed");
-        assertThatThrownBy(() -> book.rule("SEP-XXX"))
+        assertThatThrownBy(() -> book.rule("SEP-ZZZ"))
                 .isInstanceOf(SeparationError.class)
-                .hasMessageContaining("rule SEP-XXX is not filed");
+                .hasMessageContaining("rule SEP-ZZZ is not filed");
     }
 
     @Test

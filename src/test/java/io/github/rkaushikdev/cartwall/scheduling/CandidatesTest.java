@@ -114,9 +114,9 @@ class CandidatesTest {
 
     @Test
     void aDaypartTheStationDoesNotSellIsRefused() {
-        assertThatThrownBy(() -> eligibleAvails(board, book, anAsk("HYVEE", "XXX", THIRTY, "", 1)))
+        assertThatThrownBy(() -> eligibleAvails(board, book, anAsk("HYVEE", "ZZZ", THIRTY, "", 1)))
                 .isInstanceOf(PlacementError.class)
-                .hasMessageContaining("does not sell XXX");
+                .hasMessageContaining("does not sell ZZZ");
     }
 
     @Test

@@ -124,8 +124,8 @@ class DaypartTest {
         DaypartGrid grid = standardGrid();
         assertThat(grid.of("PMD").name()).isEqualTo("afternoon drive");
         assertThat(grid.has("OVN")).isTrue();
-        assertThat(grid.has("XXX")).isFalse();
-        assertThatThrownBy(() -> grid.of("XXX"))
+        assertThat(grid.has("ZZZ")).isFalse();
+        assertThatThrownBy(() -> grid.of("ZZZ"))
                 .isInstanceOf(DaypartError.class)
                 .hasMessageContaining("not on this grid");
     }
