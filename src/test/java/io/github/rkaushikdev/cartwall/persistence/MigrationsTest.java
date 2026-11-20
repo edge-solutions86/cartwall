@@ -183,6 +183,48 @@ class MigrationsTest {
         assertThat(both(INDEXES, name, migratedPool)).as(name).isEqualTo(both(INDEXES, name, builtPool));
     }
 
+    /**
+     * The comparisons above pass when both sides read nothing, so this one shows that each of them
+     * reads something, and that a change planted on one side is seen.
+     */
+    @Test
+    void theComparisonsReadTheSchemaAndSeeADifference() throws SQLException {
+        for (String kind : List.of(COLUMNS, TYPES, PRIMARY_KEY, UNIQUES, FOREIGN_KEYS, INDEXES)) {
+            for (DataSource side : List.of(migratedPool, builtPool)) {
+                assertThat(declared.stream()
+                                .mapToInt(name -> both(kind, name, side).size())
+                                .sum())
+                        .as(kind)
+                        .isPositive();
+            }
+        }
+        try (Database planted =
+                Database.open(Settings.defaults().withDatabase("jdbc:h2:mem:planted;DB_CLOSE_DELAY=-1"))) {
+            planted.migrate();
+            DataSource side = planted.dataSource();
+            try (Connection connection = side.getConnection();
+                    PreparedStatement column =
+                            connection.prepareStatement("ALTER TABLE advertiser ADD COLUMN planted INTEGER");
+                    PreparedStatement index =
+                            connection.prepareStatement("CREATE INDEX ix_advertiser_planted ON advertiser (name)");
+                    PreparedStatement unique = connection.prepareStatement(
+                            "ALTER TABLE agency ADD CONSTRAINT uq_agency_planted UNIQUE (name)");
+                    PreparedStatement key = connection.prepareStatement(
+                            "ALTER TABLE cut DROP CONSTRAINT fk_cut_advertiser_advertiser")) {
+                column.execute();
+                index.execute();
+                unique.execute();
+                key.execute();
+            }
+            assertThat(both(COLUMNS, "advertiser", side)).isNotEqualTo(both(COLUMNS, "advertiser", builtPool));
+            assertThat(both(TYPES, "advertiser", side)).isNotEqualTo(both(TYPES, "advertiser", builtPool));
+            assertThat(both(INDEXES, "advertiser", side)).isNotEqualTo(both(INDEXES, "advertiser", builtPool));
+            assertThat(both(UNIQUES, "agency", side)).isNotEqualTo(both(UNIQUES, "agency", builtPool));
+            assertThat(both(FOREIGN_KEYS, "cut", side)).isNotEqualTo(both(FOREIGN_KEYS, "cut", builtPool));
+            assertThat(both(COLUMNS, "station", side)).isEqualTo(both(COLUMNS, "station", builtPool));
+        }
+    }
+
     @Test
     void theMigrationReverses(@TempDir Path tmp) {
         try (Database database =
