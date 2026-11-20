@@ -64,8 +64,8 @@ public record Settings(String databaseUrl, String market, int horizonDays, boole
     /**
      * Read through {@code lookup}, which answers a variable name with its value or null.
      *
-     * <p>The service passes Spring's environment here, so a test property and an exported
-     * variable are read the same way.
+     * <p>The command line passes the environment it was started with here, so a test that hands
+     * in a map and a shell that exports a variable are read the same way.
      */
     public static Settings from(UnaryOperator<String> lookup) {
         return new Settings(

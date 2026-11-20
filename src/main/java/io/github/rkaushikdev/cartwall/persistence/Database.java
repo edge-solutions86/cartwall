@@ -83,6 +83,8 @@ public final class Database implements AutoCloseable {
         config.setMaximumPoolSize(4);
         config.setMinimumIdle(1);
         config.setInitializationFailTimeout(-1);
+        // A database that will not answer is reported within seconds, not after half a minute.
+        config.setConnectionTimeout(3_000);
         return new HikariDataSource(config);
     }
 
